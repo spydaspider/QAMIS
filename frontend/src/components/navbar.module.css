@@ -1,0 +1,63 @@
+.navContainer{
+    position: fixed;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0.5em;
+        background: linear-gradient(to Right, #1E3C72, #2A5298)!important;
+
+    z-index:3;
+    top:0;
+    left:0;
+    right:0;
+    max-height: 8vh;
+    max-width: 100%;
+  
+  }
+  .activeLink{
+    color:goldenrod;
+    font-weight: bold;
+  }
+  .mainNav{
+    width: 32vw;
+    display: flex;
+    justify-content: space-between;
+    
+  
+  }
+  .white{
+    color: white;
+  }
+  .chowRate{
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  .chowRate div{
+   color: white;
+   font-size: 20px;
+  }
+  .chowRate img{
+    width: 100px;
+  
+    
+  }
+  .restaurantList button{
+    background: none;
+    border:none;
+    color: white;
+    cursor:pointer;
+    
+  }
+  .logout{
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: white;
+  }
+  @media(max-width: 768px)
+  {
+    .navContainer{
+      display: none;
+    }
+  }
