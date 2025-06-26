@@ -1,4 +1,6 @@
 const Team = require('../models/teams.js');
+const Experiment = require('../models/experiments.js');
+
 
 /**
  * Create a new Team
@@ -9,7 +11,6 @@ const createTeam = async (req, res) => {
     const team = new Team({ name, experiment, students });
     const saved = await team.save();
     // Optionally, add to Experiment.teams array
-    const Experiment = require('../models/Experiment');
     await Experiment.findByIdAndUpdate(
       experiment,
       { $push: { teams: saved._id } },

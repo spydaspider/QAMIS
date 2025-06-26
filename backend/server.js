@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const experiments = require('./routes/experiments.js');
 const teams = require('./routes/teams.js');
 const users = require('./routes/users.js');
+const testCases = require('./routes/testcase.js');
 require('dotenv').config();
 
 const app = express();
@@ -18,7 +19,8 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT || 5000
 app.use('/api/users', users);
 app.use('/api/experiments', experiments);
-app.use('api/teams', teams);
+app.use('/api/teams', teams);
+app.use('/api/testCases', testCases);
  mongoose.connect(process.env.MONGO_URI).then(()=>{
     app.listen(PORT,()=>{    
         console.log("connected to the mongoose server on ", PORT);
