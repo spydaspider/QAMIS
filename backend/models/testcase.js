@@ -38,6 +38,11 @@ const ExecutionSchema = new Schema({
     type: String,
     trim: true
   },
+  comments: {
+    type: String,
+    trim: true,
+    default: ''
+  },
   executedAt: {
     type: Date,
     default: Date.now
@@ -68,7 +73,10 @@ const TestCaseSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Team'
   }],
-  executions: [ExecutionSchema]
+  executions: {
+    type: [ExecutionSchema],
+    default: []
+  }
 }, {
   timestamps: true
 });

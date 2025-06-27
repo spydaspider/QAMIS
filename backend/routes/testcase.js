@@ -10,7 +10,7 @@ const {
   addExecution,
   getTestCasesByTeam,
   removeExecution
-} = require('../controllers/testcase.js');  // note correct filename 'testcases.js'
+} = require('../controllers/testCase.js');  // note correct filename 'testcases.js'
 
 // Create a new test case
 router.post('/', createTestCase);

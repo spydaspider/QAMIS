@@ -1,4 +1,4 @@
-const TestCase = require('../models/testcase.js');
+const TestCase = require('../models/testCase.js');
 
 // Create a new test case
 const createTestCase = async (req, res) => {
@@ -20,11 +20,14 @@ const getAllTestCases = async (req, res) => {
     const filter = {};
     if (teamId) filter.assignedTeams = teamId;
     if (authorId) filter.author = authorId;
+
     const testCases = await TestCase.find(filter)
       .populate('author', 'name email')
       .populate('assignedTeams', 'name')
       .populate('executions.team', 'name')
-      .populate('executions.executedBy', 'name');
+      .populate('executions.executedBy', 'name')
+      .sort({ createdAt: -1 });
+
     res.json(testCases);
   } catch (err) {
     console.error(err);
@@ -77,15 +80,25 @@ const deleteTestCase = async (req, res) => {
   }
 };
 
-// Add an execution entry for a test case
+// Add an execution entry for a test case (with optional comments)
 const addExecution = async (req, res) => {
   try {
     const { id } = req.params;
-    const execution = req.body; // { team, executedBy?, status, actualResult }
+    const { team, executedBy, status, actualResult, comments = '' } = req.body;
+
+    // Validate status value
+    if (!['pass', 'fail', 'blocked', 'not run'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status value' });
+    }
+
     const testCase = await TestCase.findById(id);
     if (!testCase) return res.status(404).json({ error: 'TestCase not found' });
-    testCase.executions.push(execution);
+
+    // Push new execution object
+    testCase.executions.push({ team, executedBy, status, actualResult, comments });
     await testCase.save();
+
+    // Return the newly added execution
     const newExec = testCase.executions[testCase.executions.length - 1];
     res.status(201).json(newExec);
   } catch (err) {
@@ -116,7 +129,7 @@ const removeExecution = async (req, res) => {
     const { id, execIndex } = req.params; // ID of test case and execution index
     const testCase = await TestCase.findById(id);
     if (!testCase) return res.status(404).json({ error: 'TestCase not found' });
-    if (execIndex >= testCase.executions.length) {
+    if (execIndex < 0 || execIndex >= testCase.executions.length) {
       return res.status(400).json({ error: 'Invalid execution index' });
     }
     testCase.executions.splice(execIndex, 1);
@@ -127,6 +140,14 @@ const removeExecution = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 module.exports = {
-    createTestCase, getAllTestCases, getTestCaseById, updateTestCase, deleteTestCase, addExecution, getTestCasesByTeam, removeExecution 
-}
+  createTestCase,
+  getAllTestCases,
+  getTestCaseById,
+  updateTestCase,
+  deleteTestCase,
+  addExecution,
+  getTestCasesByTeam,
+  removeExecution
+};

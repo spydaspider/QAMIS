@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const experiments = require('./routes/experiments.js');
 const teams = require('./routes/teams.js');
 const users = require('./routes/users.js');
-const testCases = require('./routes/testcase.js');
+const testCases = require('./routes/testCase.js');
+const logBug = require('./routes/logBug.js');
 require('dotenv').config();
 
 const app = express();
@@ -21,6 +22,7 @@ app.use('/api/users', users);
 app.use('/api/experiments', experiments);
 app.use('/api/teams', teams);
 app.use('/api/testCases', testCases);
+app.use('/api/logBug',logBug);
  mongoose.connect(process.env.MONGO_URI).then(()=>{
     app.listen(PORT,()=>{    
         console.log("connected to the mongoose server on ", PORT);
