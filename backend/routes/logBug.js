@@ -13,7 +13,7 @@ const {
 // Multer setup for in-memory screenshot uploads (max 5 files)
 const upload = multer({ storage: multer.memoryStorage(), limits: { files: 5 } });
 
-// Create a new bug with screenshots
+// Create a new bug with optional screenshots
 router.post('/', upload.array('screenshots'), createBug);
 
 // Get all bugs (filter by team, reporter, status, severity via query params)

@@ -1,4 +1,4 @@
-const TestCase = require('../models/testCase.js');
+const TestCase = require('../models/testCase');
 
 // Create a new test case
 const createTestCase = async (req, res) => {

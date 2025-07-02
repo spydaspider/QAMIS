@@ -4,6 +4,7 @@ const Bug = require('../models/logBug');
 const createBug = async (req, res) => {
   try {
     let { title, description, reproductionSteps, severity, reporter, team } = req.body;
+    // Ensure reproductionSteps is an array
     if (typeof reproductionSteps === 'string') {
       try {
         reproductionSteps = JSON.parse(reproductionSteps);
@@ -15,13 +16,13 @@ const createBug = async (req, res) => {
       return res.status(400).json({ error: 'reproductionSteps must be a non-empty array' });
     }
 
-    // Build screenshots
+    // Handle screenshots from multipart form-data
     const screenshots = (req.files || []).map(f => ({
       data: f.buffer,
       contentType: f.mimetype
     }));
 
-    // Instantiate with currentStatus default = 'open'
+    // Instantiate with default status = 'open'
     const bug = new Bug({
       title,
       description,
@@ -32,10 +33,10 @@ const createBug = async (req, res) => {
       team
     });
 
-    // Manually seed the first history entry
+    // Seed first history entry
     bug._updatingUserId = reporter;
-    bug._statusComment  = 'Initial report';
-    bug.currentStatus   = 'open';  // though schema default covers it
+    bug._statusComment = 'Initial report';
+    bug.currentStatus = 'open';
 
     const saved = await bug.save();
     return res.status(201).json(saved);
@@ -45,21 +46,19 @@ const createBug = async (req, res) => {
   }
 };
 
-// Change only the bug’s status (so history is tracked)
+// Change only the bug’s status, triggering history push
 const changeStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { newStatus, comment } = req.body;
-    // Optional: validate newStatus against your enum
     const bug = await Bug.findById(id);
     if (!bug) return res.status(404).json({ error: 'Bug not found' });
 
     // Pass info to pre-save hook
-    bug._updatingUserId = req.user._id;  // assume you have auth middleware
-    bug._statusComment  = comment || '';
-
-    // This triggers the pre-save to push into statusHistory
+    bug._updatingUserId = req.user._id;
+    bug._statusComment = comment || '';
     bug.currentStatus = newStatus;
+
     const updated = await bug.save();
     return res.json(updated);
   } catch (err) {
@@ -68,11 +67,10 @@ const changeStatus = async (req, res) => {
   }
 };
 
-// Update other fields (description, severity, etc.) but NOT status
+// Update other bug fields (excludes status)
 const updateBug = async (req, res) => {
   try {
     const { id } = req.params;
-    // Remove any attempt to change status through this route
     const { currentStatus, statusHistory, ...fields } = req.body;
     const bug = await Bug.findById(id);
     if (!bug) return res.status(404).json({ error: 'Bug not found' });
@@ -86,16 +84,15 @@ const updateBug = async (req, res) => {
   }
 };
 
-// The rest remain unchanged:
-
+// Fetch bugs with optional filters
 const getAllBugs = async (req, res) => {
   try {
     const { teamId, reporterId, status, severity } = req.query;
     const filter = {};
-    if (teamId)     filter.team    = teamId;
+    if (teamId) filter.team = teamId;
     if (reporterId) filter.reporter = reporterId;
-    if (status)     filter.currentStatus = status;
-    if (severity)   filter.severity = severity;
+    if (status) filter.currentStatus = status;
+    if (severity) filter.severity = severity;
 
     const bugs = await Bug.find(filter)
       .populate('reporter', 'name email')
@@ -109,6 +106,7 @@ const getAllBugs = async (req, res) => {
   }
 };
 
+// Fetch single bug by ID
 const getBugById = async (req, res) => {
   try {
     const bug = await Bug.findById(req.params.id)
@@ -122,6 +120,7 @@ const getBugById = async (req, res) => {
   }
 };
 
+// Delete a bug
 const deleteBug = async (req, res) => {
   try {
     const deleted = await Bug.findByIdAndDelete(req.params.id);
@@ -135,9 +134,9 @@ const deleteBug = async (req, res) => {
 
 module.exports = {
   createBug,
-  getAllBugs,
-  getBugById,
   changeStatus,
   updateBug,
+  getAllBugs,
+  getBugById,
   deleteBug
 };
