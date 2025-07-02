@@ -1,4 +1,17 @@
 const Bug = require('../models/logBug');
+const getBugStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    // Project only currentStatus and statusHistory
+    const bug = await Bug.findById(id, 'currentStatus statusHistory')
+                         .populate('statusHistory.changedBy', 'name email');
+    if (!bug) return res.status(404).json({ error: 'Bug not found' });
+    res.json(bug);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+};
 
 // Create a new bug, and record the initial “open” status entry
 const createBug = async (req, res) => {
@@ -50,12 +63,13 @@ const createBug = async (req, res) => {
 const changeStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { newStatus, comment } = req.body;
+    const { newStatus, comment, changedBy } = req.body;
     const bug = await Bug.findById(id);
     if (!bug) return res.status(404).json({ error: 'Bug not found' });
 
     // Pass info to pre-save hook
-    bug._updatingUserId = req.user._id;
+      bug._updatingUserId = (req.user && req.user._id) || changedBy;
+
     bug._statusComment = comment || '';
     bug.currentStatus = newStatus;
 
@@ -138,5 +152,6 @@ module.exports = {
   updateBug,
   getAllBugs,
   getBugById,
-  deleteBug
+  deleteBug,
+  getBugStatus
 };

@@ -24,7 +24,7 @@ const getAllExperiments = async(req, res) =>{
 const getExperimentById = async(req, res) =>{
     try {
     const { id } = req.params;
-    const experiment = await Experiment.findById(id).populate('teams');
+    const experiment = await Experiment.findById(id, 'methodology startDate endDate teams').populate('teams','name members');
     if (!experiment) {
       return res.status(404).json({ success: false, message: 'Experiment not found' });
     }

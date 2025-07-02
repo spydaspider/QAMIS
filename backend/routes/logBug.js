@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const auth = require('../middleware/auth.js');
 const multer = require('multer');
 const {
   createBug,
@@ -7,7 +8,7 @@ const {
   getBugById,
   changeStatus,
   updateBug,
-  deleteBug
+  deleteBug,getBugStatus
 } = require('../controllers/logBug.js');
 
 // Multer setup for in-memory screenshot uploads (max 5 files)
@@ -30,5 +31,7 @@ router.put('/:id', updateBug);
 
 // Delete a bug by ID
 router.delete('/:id', deleteBug);
+//get one bug status
+router.get('/:id/status',getBugStatus);
 
 module.exports = router;
