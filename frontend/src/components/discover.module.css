@@ -1,0 +1,214 @@
+.background{
+    display: grid;
+    grid-template-rows: repeat(6,1fr);
+    height: 100vh;
+    width:100%;
+    
+ }
+ .leftBar{
+
+    width:100%;
+    
+ }
+ .leftBar h1{
+    display:none;
+ }
+ .center{
+    text-align: center;
+ }
+ .error{
+    background: red;
+    padding: 0.6em;
+    opacity: 0.5;
+    
+ }
+ .black{
+    color: black;
+ }
+ .container{
+     grid-row: 3/6;
+     width: 100%;
+     height: 100vh;
+     margin-left: auto;
+     margin-right: auto;
+     
+     
+     display: flex;
+     flex-direction: column;
+     
+ 
+     
+ 
+ }
+ .right{
+     display: flex;
+     flex-direction: column;
+     gap: 1em;
+     width:100%;
+    
+ 
+ }
+ .right{
+    width: 100%;
+
+ }
+ .topRight{
+     display: flex;
+     gap:1%;
+     align-items: center;
+     justify-content: center;
+ 
+ 
+ }
+ .form{
+    display: flex;
+    flex-direction: column; /* Stack form elements vertically */
+    gap: 1rem; /* Add spacing between elements */
+    max-width: 400px; /* Restrict form width on large screens */
+    width: 100%; /* Ensure the form spans its container */
+    margin: 0 auto; /* Center the form horizontally */
+    padding: 1rem; /* Add padding for better spacing */
+    box-sizing: border-box; 
+    height: 100vh;
+
+     
+ }
+ .form input, .form button {
+    width: 100%; /* Make inputs fill the available width */
+    padding: 0.75rem; /* Add padding for better touch targets */
+    font-size: 1rem; /* Ensure readability */
+    border:2px solid #efefef;
+    border-radius: 4px; /* Smooth rounded corners */
+    box-sizing: border-box; /* Prevent overflowing due to padding */
+  }
+  
+ 
+ 
+ .signIn{
+    display:block;
+    padding: 0.6em;
+  background: linear-gradient(to right, #D8AB37,#F18345);
+  border:none;
+  color: white;
+  font-size:15px;
+  width:100%;
+ 
+ }
+ 
+ 
+ 
+ .left{
+     background: #cbcbcb;
+     height: 1px;
+     width: 218px;
+ }
+ .orRight{
+     background: #cbcbcb;
+     height: 1px;
+     width: 218px;
+     
+ }
+ .leftTitle{
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+ }
+ .leftTitle img{
+    width: 120px;
+ }
+ @media (min-width:768px){
+     
+     .container{
+         display: grid;
+         border: 1px solid #e4e4e4;
+         overflow-y: auto;
+         max-height: 70vh;
+         grid-template-columns: repeat(6,1fr);
+         max-width: 900px;
+         margin-top: -6em;
+         
+         
+ 
+     }
+     
+     .right{
+         
+         grid-column: 3/7;
+         padding: 3em;
+         display: flex;
+         flex-direction: column;
+         box-sizing: border-box;
+         position: relative;
+        
+
+     }
+     
+     /* .topRight{
+         
+         display: flex;
+         justify-content: flex-end;
+         
+     } */
+     .topRight p,a{
+         color: #333;
+     }
+    .form{
+      width: 100%;
+      margin-right: auto;
+      margin-left: auto;
+      
+    
+      padding: 0;
+      
+      
+    }
+    .signIn{
+     border-radius: 20px;
+     cursor:pointer;
+    }
+    .leftBar{
+     background:#22262f;
+     width: 35%;
+     display: flex;
+     flex-direction: column;
+     justify-content: space-between;
+    }
+    .leftBar h2{
+     color: white;
+     padding: 1em;
+     font-size: 30px;
+    }
+    .leftTitle{
+       color: white;
+       display: flex;
+       align-items: center;
+       padding: 2em;
+       gap: 0.5em;
+ 
+    }
+    .leftTitle h1{
+     font-size: 20px;
+ 
+    }
+    .light{
+     font-weight: 400;
+    }
+    .topRight{
+     display: flex;
+     gap: 0.3em;
+     justify-content: flex-end;
+ 
+ }
+ .error{
+    background: red;
+    padding: 0.6em;
+    opacity: 0.5
+ }
+ .center{
+    text-align: left;
+ }
+ 
+ }
+ 
+ 

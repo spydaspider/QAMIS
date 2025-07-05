@@ -4,6 +4,7 @@ import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import InstructorDashboard from './components/instructorDashboard';
 import Navbar from './components/navbar';
 import StudentDashboard from './components/studentDashboard';
+import Register from './components/signup';
 
 function App() {
   return (
@@ -11,8 +12,9 @@ function App() {
       <BrowserRouter>
       <Navbar/>
       <Routes>
-        <Route exact path="/" element = {<InstructorDashboard/>}/>
-        <Route path ="studentDashBoard" element = {<StudentDashboard/>}/>
+        <Route exact path="/" element = {<Register/>}/>
+{/*         <Route exact path="/" element = {<InstructorDashboard/>}/>
+ */}        <Route path ="studentDashBoard" element = {<StudentDashboard/>}/>
                   
 
       </Routes>
