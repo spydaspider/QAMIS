@@ -2,16 +2,21 @@ import React,{ Fragment } from 'react';
 import { NavLink } from 'react-router-dom';
 import styles from './navbar.module.css';
 import { useNavigate } from 'react-router-dom';
-import homeIcon from '../assets/icons/home.png';
-const Navbar = () =>{
+import { useLogout } from '../hooks/useLogout';
+import { useAuthContext } from '../hooks/useAuthContext';
+/* import homeIcon from '../assets/icons/home.png';
+ */const Navbar = () =>{
+      const { user } = useAuthContext();
+
     
     const navigate = useNavigate();
-   /*  const handleLogout = () =>{
+    const {logout} = useLogout();
+     const handleLogout = () =>{
         logout();
-        navigate('/login');
+        navigate('/');
 
     }
-     */
+     
     return(
         <header>
             <div className={styles.navContainer}>
@@ -21,7 +26,7 @@ const Navbar = () =>{
                 </NavLink>
 
                 <nav className={styles.mainNav}>
-                  <NavLink className={({isActive}) =>(isActive ? styles.activeLink: styles.white)} to ="/"><img src={homeIcon}/></NavLink>
+                  <NavLink className={({isActive}) =>(isActive ? styles.activeLink: styles.white)} to ="/"><img alt ="icon"/></NavLink>
                   <NavLink className={({isActive})=>(isActive ? styles.activeLink : styles.white)} to ="/studentDashBoard">StudentDash</NavLink>
                   <NavLink className={({isActive})=>(isActive ? styles.activeLink: styles.white)} to = "/contact">Contact Us</NavLink>
 
@@ -30,14 +35,14 @@ const Navbar = () =>{
 
                 </nav>
                 <div className={styles.restaurantList}>
-{/*                 <NavLink className={({isActive})=>(isActive ? styles.activeLink: styles.white)} to = "/restaurants">List Your Restaurant</NavLink>
- */}
+                <NavLink className={({isActive})=>(isActive ? styles.activeLink: styles.white)} to = "/restaurants">List Your Restaurant</NavLink>
+ 
 
                 </div>
 
                
-{/*                 {user ? <button className={styles.logout}onClick={handleLogout}>logout</button>:<Fragment><NavLink to="/register">Signup</NavLink><NavLink to="/login">login</NavLink></Fragment>}
- */}                
+                {user ? <button className={styles.logout}onClick={handleLogout}>logout</button>:<Fragment><NavLink to="/register">Signup</NavLink><NavLink to="/login">login</NavLink></Fragment>}
+                
                 
             </div>
         </header>
