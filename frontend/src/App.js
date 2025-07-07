@@ -5,6 +5,7 @@ import InstructorDashboard from './components/instructorDashboard';
 import Navbar from './components/navbar';
 import StudentDashboard from './components/studentDashboard';
 import Register from './components/signup';
+import Spinner from './components/spinner';
 
 function App() {
   return (
@@ -12,9 +13,11 @@ function App() {
       <BrowserRouter>
       <Navbar/>
       <Routes>
-        <Route exact path="/" element = {<Register/>}/>
-{/*         <Route exact path="/" element = {<InstructorDashboard/>}/>
- */}        <Route path ="studentDashBoard" element = {<StudentDashboard/>}/>
+{/*                <Route exact path="/" element = {<Spinner/>}/>
+ */}
+         <Route exact path="/" element = {<Register/>}/>
+          <Route path="/instructorDashboard" element = {<InstructorDashboard/>}/>
+         <Route path ="/studentDashboard" element = {<StudentDashboard/>}/>
                   
 
       </Routes>

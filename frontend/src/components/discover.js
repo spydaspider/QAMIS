@@ -5,7 +5,7 @@ import styles from './discover.module.css';
     
         <div className={styles.leftBar}>
                 <div className = {styles.leftTitle}>
-                <div className={styles.mobileLeftTitleDiv}>ChowRate</div>
+                <div className={styles.mobileLeftTitleDiv}>CRQAMIS</div>
 {/*                 <img src={chowRate} alt="chowrate "/>
  */}                </div>
                 <h2 className={styles.center}>{props.message}</h2>

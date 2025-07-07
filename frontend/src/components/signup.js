@@ -1,11 +1,11 @@
 import styles from './signup.module.css';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
-//import { useSignup } from '../hooks/useSignup';
- 
-/* import AuthError from './authError';
- */
-import Discover from './discover';
+import { useSignup } from '../hooks/useSignup';
+import { useNavigate } from 'react-router-dom';
+import AuthError from './authError';
+ import Discover from './discover';
+import Spinner from './spinner';
 /* import Loading from './loading';
  */const Register =()=>{
  const [role, setRole] = useState("");
@@ -13,8 +13,9 @@ import Discover from './discover';
    const [firstName, setFirstName] = useState('');
    const [lastName, setLastName] = useState('');
    const [password, setPassword] = useState('');
+   const navigate = useNavigate();
      const [confirmPassword, setConfirmPassword] = useState('');
-//      const { signup,error} = useSignup();
+    const { signup,error,isLoading} = useSignup();
       const message = "Collaborative QA Experiment";
      const handleRoleChange = (event) =>{
         setRole(event.target.value)
@@ -26,24 +27,21 @@ import Discover from './discover';
     if (!role) {
         return;
       }
-/*     await signup(username, email, password, confirmPassword, role);
- */   /*  switch (role) {
-        case "user":
-          navigate("/");
+      await signup(username, email, password, confirmPassword, role);
+      switch (role) {
+        case "student":
+          navigate("/studentDashboard");
           break;
-        case "restaurantOwner":
-          navigate("/restaurantDashboard");
-          break;
-        case "admin":
-          navigate("/adminDashboard");
+        case "instructor":
+          navigate("/instructorDashboard");
           break;
         default:
-      } */
+      }  
     
   }
     return(
         <div className={styles.background}>
-
+         {isLoading && <Spinner/>}
 
         <div className={styles.container}>
         
@@ -82,8 +80,8 @@ import Discover from './discover';
         
       </select>
                     <button className={styles.signIn}>register</button>
-{/*                     {error && <AuthError message = {error}/>}
- */}
+                     {error && <AuthError message = {error}/>}
+ 
                   
 
                 </form>

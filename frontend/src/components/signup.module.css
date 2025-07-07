@@ -1,3 +1,6 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
 .background {
    display: flex;
    justify-content: center;
@@ -53,12 +56,16 @@
    width: 100%;
    padding: 0.75rem;
    border-radius: 4px;
-   border:2px solid #efefef
+   border:2px solid #efefef;
+   
  }
  
  .names {
-   display: flex;
+  display: flex;
+   width:100%;
    gap: 1rem;
+   
+   
    
  }
  
@@ -66,8 +73,9 @@
    flex: 1;
    border:2px solid #efefef;
    padding:0.75em;
-   width: 100%;
- }
+   
+   
+  }
  .label {
   margin: 10px 0 5px;
 }
