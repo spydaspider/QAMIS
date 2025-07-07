@@ -6,6 +6,7 @@ import Navbar from './components/navbar';
 import StudentDashboard from './components/studentDashboard';
 import Register from './components/signup';
 import Spinner from './components/spinner';
+import Login from './components/login';
 
 function App() {
   return (
@@ -15,7 +16,8 @@ function App() {
       <Routes>
 {/*                <Route exact path="/" element = {<Spinner/>}/>
  */}
-         <Route exact path="/" element = {<Register/>}/>
+         <Route exact path="/" element={<Login/>}/>
+         <Route exact path="/register" element = {<Register/>}/>
           <Route path="/instructorDashboard" element = {<InstructorDashboard/>}/>
          <Route path ="/studentDashboard" element = {<StudentDashboard/>}/>
                   

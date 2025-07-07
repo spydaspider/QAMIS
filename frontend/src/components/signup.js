@@ -28,15 +28,7 @@ import Spinner from './spinner';
         return;
       }
       await signup(username, email, password, confirmPassword, role);
-      switch (role) {
-        case "student":
-          navigate("/studentDashboard");
-          break;
-        case "instructor":
-          navigate("/instructorDashboard");
-          break;
-        default:
-      }  
+      
     
   }
     return(
@@ -51,7 +43,7 @@ import Spinner from './spinner';
             <div className={styles.right}>
                 <div className={styles.topRight}>
                 <p>I Already have an account?</p>
-                <Link to="/login">Sign in</Link>
+                <Link to="/">Sign in</Link>
                 </div>
                 <form onSubmit={handleSubmit} className={styles.form}>
                     <h2 className={styles.center}>Register</h2>
