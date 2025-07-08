@@ -34,12 +34,7 @@ import { useAuthContext } from '../hooks/useAuthContext';
                   
 
                 </nav>
-                <div className={styles.restaurantList}>
-                <NavLink className={({isActive})=>(isActive ? styles.activeLink: styles.white)} to = "/restaurants">List Your Restaurant</NavLink>
- 
-
-                </div>
-
+               
                
                 {user ? <button className={styles.logout}onClick={handleLogout}>logout</button>:<Fragment><NavLink to="/register">Signup</NavLink><NavLink to="/login">login</NavLink></Fragment>}
                 

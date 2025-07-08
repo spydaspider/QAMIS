@@ -9,6 +9,8 @@ import alertsIcon from '../assets/icons/Alerts.png';
 import milestonesIcon from '../assets/icons/milestones.png';
 import resourcesIcon from '../assets/icons/resources.png';
 import testCaseIcon from '../assets/icons/testcase.png';
+import InstructorControlPanel from './instructorMetricsView';
+import InstructorGroups from './instructorGroups';
 
 const InstructorDashboard = () =>{
    
@@ -26,6 +28,8 @@ const badges = [
 ];
     const message = "Instructor Dashboard";
     const [selectedBadge, setSelectedBadge] = useState("Dashboard");
+    const [showInstructorMetricsView, setShowInstructorMetricsView] = useState(true);
+    const [showInstructorGroups, setShowInstructorGroups] = useState(false);
    /*  const [showDashBoard, setShowDashBoard] = useState(true);
     const [showRestaurants, setShowRestaurants] = useState(false);
     const [showReviews,setShowReviews] = useState(false);
@@ -35,21 +39,17 @@ const badges = [
   // Handle button click to update the selected state
   const handleBadgeClick = (badge) => {
     setSelectedBadge(badge);
-    /*   if(badge === 'Dashboard')
+       if(badge === 'Dashboard')
       {
-        setShowDashBoard(true);
-        setShowRestaurants(false);
-        setShowReviews(false);
-        setShowUsers(false);
+        setShowInstructorMetricsView(true);
+        setShowInstructorGroups(false);
       }
-      else if(badge === 'Restaurants')
+      else if(badge === 'Groups')
       {
-        setShowDashBoard(false);
-        setShowRestaurants(true);
-        setShowReviews(false);
-        setShowUsers(false);
+          setShowInstructorMetricsView(false);
+        setShowInstructorGroups(true);
       }
-      else if(badge === 'Reviews')
+      /*else if(badge === 'Reviews')
       {
         setShowDashBoard(false);
         setShowRestaurants(false);
@@ -86,8 +86,9 @@ const badges = [
                 </div>
 
               </div>
-              {/* {showDashBoard && <Dashboard  users={users} reviews={reviews} restaurants ={restaurants} />}
-              {showRestaurants && <RestaurantsAndBars restaurants ={restaurants} handleRefetchData = {handleRefetchData }  />}
+               {showInstructorMetricsView && <InstructorControlPanel/>}
+               {showInstructorGroups && <InstructorGroups/>}
+             {/*} {showRestaurants && <RestaurantsAndBars restaurants ={restaurants} handleRefetchData = {handleRefetchData }  />}
               {showReviews && <AdminReviews reviews={reviews}  handleRefetchData = {handleRefetchData } />}
               {showUsers && <AdminUsers  users = {users} handleRefetchData = {handleRefetchData } />}
               */}

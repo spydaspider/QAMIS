@@ -1,0 +1,84 @@
+/* InstructorGroups.module.css */
+.container {
+  padding: 20px;
+  grid-column: 4/13;
+  overflow-y: auto;
+}
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  color: #333;
+}
+.controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.searchBox {
+  margin-bottom: 24px;
+}
+.input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+.button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  background: #2A5298;
+  color: white;
+  cursor: pointer;
+}
+.groupCard {
+  border: 1px solid #EFEFF4;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 24px;
+  cursor: pointer;
+}
+.selected {
+  background: #EFEFF4;
+}
+.groupName {
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+.studentList {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 12px;
+}
+.studentItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+.removeBtn {
+  background: none;
+  border: none;
+  color: #E7A722;
+  cursor: pointer;
+}
+.addStudentBox {
+  margin-top: 12px;
+}
+.suggestionList {
+  list-style: none;
+  padding: 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  max-height: 120px;
+  overflow-y: auto;
+  background: white;
+}
+.suggestionItem {
+  padding: 8px;
+  cursor: pointer;
+}
+.suggestionItem:hover {
+  background: #EFEFF4;
+}

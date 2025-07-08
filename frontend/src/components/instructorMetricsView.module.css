@@ -1,0 +1,200 @@
+.middle{
+    display: grid;
+    grid-template-columns: repeat(12,1fr);
+    gap: 2%;
+    padding: 20px;
+    max-width: 100%;
+    margin-right: auto;
+  
+}
+.left{
+    
+    width:100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #EFEFF4;
+    border-radius:10px;
+    grid-column: 1/4;
+    
+
+
+    
+}
+.top{
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    height: 300px;
+    width:100%;
+    padding: 10px;
+}
+.top .badge{
+    padding: 17px 0;
+    border: none;
+    background: white;
+    border-radius: 10px;
+}
+.badge:hover{
+    background: #EFEFF4;
+}
+
+  
+  .selected {
+    background: linear-gradient(to Right, #F18345, #D8AB37)!important;/* A distinct background for the selected badge */
+    color: white; /* Change text color to white for contrast */
+    border: none; /* Optional: remove border for a cleaner look */
+  }
+  .down{
+    width:100%;
+    display: flex;
+    justify-content: center;
+    padding:10px;
+  }
+  .down button{
+    
+    border: none;
+    background: none;
+    width:100%;
+    padding: 1em 0;
+    border-radius: 10px;
+
+  }
+  .down button:hover{
+    background: #EFEFF4;
+  }
+
+.right{
+     grid-column: 3/13;
+    width:100%;
+    
+
+}
+.topReadings{
+  
+  display: flex;
+  gap:2%;
+  width: 100%;
+  
+
+
+}
+.rrTop{
+  
+   display: flex;
+   gap: 1%;
+  
+   width: 200px;
+   
+  
+  
+
+}
+ .imgContainer{
+  width: 45px;
+}
+.rrTop img{
+  width: 100%;
+}
+.rr{
+  font-size: 12px;
+  font-weight:400;
+}
+.noOfRequest{
+  margin-top: -0.7em;
+
+}
+.rrTotal{
+  font-size: 13px;
+  font-weight: 400;
+  color: white;
+  
+}
+.totalNoOfRequest{
+  color: white;
+  margin-top: -0.7em;
+}
+.totalContainer{
+  background: #E7A722;
+  border-radius: 6px;
+  padding: 10px;
+  
+}
+.seeDetails{
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  
+  
+}
+.arrowContainer{
+  width: 16px;
+  
+}
+.arrowContainer img{
+  width: 100%;
+  margin-top:3px;
+  cursor: pointer;
+}
+.see{
+  color:#E7A722;
+  
+}
+.line{
+  width: 8px;
+  background: #333;
+}
+.chartContainer {
+
+  padding: 20px;
+  max-width: 800px;
+  margin-top: 50px;
+  
+  
+  border-radius: 8px;
+}
+.title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20px;
+
+  text-align: left;
+}
+.chart {
+  margin: auto;
+}
+.restaurantsAndReviews{
+  
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  width: 90%;
+  
+  
+  
+
+}
+
+.location{
+  font-size: 13px;
+  margin-top: -1.5em;
+}
+.latestContainer{
+  margin-top: -1.2em;
+}
+table{
+  }
+table thead tr th{
+  font-size: 14px;
+  font-weight: 300;
+}
+table tbody tr td{
+  font-size: 14px;
+  font-weight: 200;
+}
