@@ -6,6 +6,8 @@ import { useAuthContext } from '../hooks/useAuthContext';
 
 const InstructorGroups = () => {
   const { groups, dispatch } = useGroupsContext();
+  console.log('current groups array:', groups);
+
   const { user } = useAuthContext();
 
   const [experiments, setExperiments] = useState([]);
@@ -99,16 +101,34 @@ const InstructorGroups = () => {
   };
 
   const handleRemoveGroup = async (groupId) => {
-    try {
-      const res = await fetch(`/api/teams/${groupId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${user.token}` } });
-      if (res.ok) {
-        dispatch({ type: 'DELETE_GROUPS', payload: groupId });
-        if (selectedGroupId === groupId) setSelectedGroupId(null);
+  console.log('[handleRemoveGroup] called with id:', groupId);
+
+  try {
+    const res = await fetch(`/api/teams/${groupId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${user.token}` }
+    });
+    console.log('[handleRemoveGroup] response.ok =', res.ok, 'status=', res.status);
+
+    if (res.ok) {
+      console.log('[handleRemoveGroup] about to dispatch DELETE_GROUPS');
+      dispatch({ type: 'DELETE_GROUPS', payload: groupId });
+      console.log('[handleRemoveGroup] dispatched DELETE_GROUPS');
+      if (selectedGroupId === groupId) {
+        setSelectedGroupId(null);
+        console.log('[handleRemoveGroup] cleared selectedGroupId');
       }
-    } catch {
-      setError('Failed to remove group');
+    } else {
+      const err = await res.json();
+      console.error('[handleRemoveGroup] server error payload:', err);
+      setError(err.error || 'Delete failed');
     }
-  };
+  } catch (err) {
+    console.error('[handleRemoveGroup] fetch threw:', err);
+    setError('Failed to remove group');
+  }
+};
+
 
   const handleAddStudent = async (groupId, student) => {
     try {

@@ -82,7 +82,6 @@ const deleteTeam = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Team not found' });
     }
     // Optionally, remove from Experiment.teams array
-    const Experiment = require('../models/Experiment');
     await Experiment.findByIdAndUpdate(
       team.experiment,
       { $pull: { teams: team._id } }

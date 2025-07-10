@@ -3,6 +3,8 @@
 import { createContext, useReducer } from 'react';
 export const GroupsContext = createContext();
 const groupsReducer = (state, action) => {
+    console.log('↓ reducer got:', action.type, action.payload);
+
   switch (action.type) {
     case 'SET_GROUPS':
       return { ...state, groups: action.payload };
