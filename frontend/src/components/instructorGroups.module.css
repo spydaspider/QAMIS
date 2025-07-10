@@ -82,3 +82,20 @@
 .suggestionItem:hover {
   background: #EFEFF4;
 }
+
+/* InstructorGroups.module.css */
+/* add styling for select & experimentLabel */
+.select {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin: 0 8px;
+}
+.experimentLabel {
+  font-size: 12px;
+  padding: 4px 8px;
+  background: #EFEFF4;
+  border-radius: 4px;
+}
+
+

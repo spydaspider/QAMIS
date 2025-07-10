@@ -1,138 +1,224 @@
 // InstructorGroups.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './instructorGroups.module.css';
-
-// Mock data — replace with API calls as needed
-const mockGroups = [
-  { id: 1, name: 'Group A', students: ['Alice Johnson', 'Bob Smith', 'Charlie Lee'] },
-  { id: 2, name: 'Group B', students: ['David Kim', 'Ella Green'] }
-];
-
-// Master student list
-const mockStudents = [
-  'Alice Johnson', 'Bob Smith', 'Charlie Lee',
-  'David Kim', 'Ella Green', 'Fiona Chen',
-  'George Patel', 'Hannah Lee'
-];
+import { useGroupsContext } from '../hooks/useGroupsContext';
+import { useAuthContext } from '../hooks/useAuthContext';
 
 const InstructorGroups = () => {
-  const [groups, setGroups] = useState(mockGroups);
+  const { groups, dispatch } = useGroupsContext();
+  const { user } = useAuthContext();
+
+  const [experiments, setExperiments] = useState([]);
+  const [selectedExperimentId, setSelectedExperimentId] = useState('');
   const [newGroupName, setNewGroupName] = useState('');
   const [selectedGroupId, setSelectedGroupId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [studentSearchTerm, setStudentSearchTerm] = useState('');
+  const [students, setStudents] = useState([]);
+  const [error, setError] = useState(null);
 
-  const handleAddGroup = () => {
-    const name = newGroupName.trim();
-    if (!name) return;
-    setGroups(prev => [...prev, { id: Date.now(), name, students: [] }]);
-    setNewGroupName('');
+  // fetch experiments
+  useEffect(() => {
+    const fetchExperiments = async () => {
+      try {
+        const res = await fetch('/api/experiments', { headers: { 'Authorization': `Bearer ${user.token}` } });
+        const json = await res.json();
+        if (res.ok) {
+          setExperiments(json.data);
+          if (json.data.length) setSelectedExperimentId(json.data[0]._id);
+        } else setError(json.error);
+      } catch {
+        setError('Failed to fetch experiments');
+      }
+    };
+    if (user) fetchExperiments();
+  }, [user]);
+
+  // fetch groups
+   // fetch groups
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const res  = await fetch('/api/teams', { headers: { 'Authorization': `Bearer ${user.token}` } });
+        const json = await res.json();
+        console.log(json);
+        if (res.ok) {
+          dispatch({ type: 'SET_GROUPS', payload: json.data });
+         if (json.data.length && !selectedGroupId) {
+           setSelectedGroupId(json.data[0]._id);
+         }
+        } else {
+          setError(json.error);
+        }
+      } catch {
+        setError('Failed to fetch groups');
+      }
+    };
+    if (user) fetchGroups();
+  }, [dispatch, user]);
+
+
+  // fetch users
+ useEffect(() => {
+  const fetchUsers = async () => {
+    setError(null);                         // clear previous
+    try {
+      const res  = await fetch('/api/users/allUsers');
+      const json = await res.json();
+      // adjust to the real field name:
+      const list = json;
+      setStudents(list.filter(u => u.role === 'student'));
+    } catch (err) {
+      console.error(err);
+      setError('Failed to fetch users');
+    }
   };
+  if (user) fetchUsers();
+}, [user]);
 
-  const handleRemoveGroup = (groupId) => {
-    setGroups(prev => prev.filter(g => g.id !== groupId));
-    if (selectedGroupId === groupId) {
-      setSelectedGroupId(null);
+  const handleAddGroup = async () => {
+    const name = newGroupName.trim();
+    if (!name || !selectedExperimentId) return setError('Group name or experiment missing');
+    try {
+      const res = await fetch('/api/teams', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.token}`
+        },
+        body: JSON.stringify({ name, experiment: selectedExperimentId, students: [] })
+      });
+      const json = await res.json();
+      if (res.ok) {
+        dispatch({ type: 'CREATE_GROUPS', payload: json.data });
+        setNewGroupName('');
+      } else setError(json.error);
+    } catch {
+      setError('Failed to create group');
     }
   };
 
-  const handleRemoveStudent = (groupId, student) => {
-    setGroups(prev => prev.map(g =>
-      g.id === groupId ? { ...g, students: g.students.filter(s => s !== student) } : g
-    ));
+  const handleRemoveGroup = async (groupId) => {
+    try {
+      const res = await fetch(`/api/teams/${groupId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${user.token}` } });
+      if (res.ok) {
+        dispatch({ type: 'DELETE_GROUPS', payload: groupId });
+        if (selectedGroupId === groupId) setSelectedGroupId(null);
+      }
+    } catch {
+      setError('Failed to remove group');
+    }
   };
 
-  const handleAddStudent = (groupId, student) => {
-    setGroups(prev => prev.map(g =>
-      g.id === groupId && !g.students.includes(student)
-        ? { ...g, students: [...g.students, student] }
-        : g
-    ));
-    setStudentSearchTerm('');
+  const handleAddStudent = async (groupId, student) => {
+    try {
+      const res = await fetch(`/api/teams/${groupId}/assign-students`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.token}`
+        },
+        body: JSON.stringify({ studentIds: [student._id] })
+      });
+      const json = await res.json();
+      if (res.ok) { dispatch({ type: 'UPDATE_GROUPS', payload: json.data }); setStudentSearchTerm(''); }
+      else setError(json.error);
+    } catch {
+      setError('Failed to add student');
+    }
+  };
+
+  const handleRemoveStudent = async (groupId, studentId) => {
+    try {
+      const res = await fetch(`/api/teams/${groupId}/remove-students`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.token}`
+        },
+        body: JSON.stringify({ studentIds: [studentId] })
+      });
+      const json = await res.json();
+      if (res.ok) dispatch({ type: 'UPDATE_GROUPS', payload: json.data });
+      else setError(json.error);
+    } catch {
+      setError('Failed to remove student');
+    }
   };
 
   const filteredGroupStudents = (group) =>
-    group.students.filter(s => s.toLowerCase().includes(searchTerm.toLowerCase()));
+    group.students
+      .map(s => (typeof s === 'string' ? s : s.username))
+      .filter(name => name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  const filteredMasterStudents = () =>
-    mockStudents
-      .filter(s => !groups.find(g => g.id === selectedGroupId)?.students.includes(s))
-      .filter(s => s.toLowerCase().includes(studentSearchTerm.toLowerCase()));
+  const filteredMasterStudents = () => {
+    console.log('🔍 studentSearchTerm:', studentSearchTerm);
+  console.log('👥 total students:', students.length);
+  console.log('👥 student list:', students.map(s => s.username));
+  // nothing to search yet
+  if (!studentSearchTerm) return [];
 
+  // find the selected group once
+  const group = groups.find(g => g._id === selectedGroupId);
+  // build a Set of student-IDs already in that group (handles strings & objects)
+  const inGroupIds = new Set(
+    (group?.students ?? []).map(st => (typeof st === 'string' ? st : st._id))
+  );
+
+  // return only those not inGroup AND matching the searchTerm
+  return students
+    .filter(s => !inGroupIds.has(s._id))
+    .filter(s =>
+      s.username.toLowerCase().includes(studentSearchTerm.toLowerCase())
+    );
+};
   return (
     <div className={styles.container}>
+      {error && <div className={styles.error}>{error}</div>}
       <h2 className={styles.title}>Group Management</h2>
 
       <div className={styles.controls}>
-        <input
-          className={styles.input}
-          type="text"
-          placeholder="New group name"
-          value={newGroupName}
-          onChange={e => setNewGroupName(e.target.value)}
-        />
+        <input className={styles.input} placeholder="New group name" value={newGroupName} onChange={e => setNewGroupName(e.target.value)} />
+        <select className={styles.select} value={selectedExperimentId} onChange={e => setSelectedExperimentId(e.target.value)}>
+          {experiments.map(exp => (
+            <option key={exp._id} value={exp._id}>
+              {exp.title + ' (' + exp.methodology + ')'}
+            </option>
+          ))}
+        </select>
         <button className={styles.button} onClick={handleAddGroup}>Add Group</button>
       </div>
 
       <div className={styles.searchBox}>
-        <input
-          className={styles.input}
-          type="text"
-          placeholder="Search students in all groups"
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-        />
+        <input className={styles.input} placeholder="Search students in all groups" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
       </div>
 
-      {groups.map(group => (
-        <div
-          key={group.id}
-          className={`${styles.groupCard} ${selectedGroupId === group.id ? styles.selected : ''}`}
-          onClick={() => setSelectedGroupId(group.id)}
-        >
+      {Array.isArray(groups) && groups.map(group => (
+        <div key={group._id} className={`${styles.groupCard} ${selectedGroupId === group._id ? styles.selected : ''}`} onClick={() => setSelectedGroupId(group._id)}>
           <div className={styles.header}>
             <h3 className={styles.groupName}>{group.name}</h3>
-            <button
-              className={styles.removeGroupBtn}
-              onClick={e => { e.stopPropagation(); handleRemoveGroup(group.id); }}
-            >
-              ×
-            </button>
+            <span className={styles.experimentLabel}>
+              {experiments.find(exp => exp._id === group.experiment)? experiments.find(exp => exp._id === group.experiment).title : 'No Exp'}
+            </span>
+            <button className={styles.removeGroupBtn} onClick={e => { e.stopPropagation(); handleRemoveGroup(group._id); }}>×</button>
           </div>
 
           <ul className={styles.studentList}>
-            {filteredGroupStudents(group).map(student => (
-              <li key={student} className={styles.studentItem}>
-                {student}
-                <button
-                  className={styles.removeBtn}
-                  onClick={e => { e.stopPropagation(); handleRemoveStudent(group.id, student); }}
-                >
-                  Remove
-                </button>
+            {filteredGroupStudents(group).map(studentName => (
+              <li key={studentName} className={styles.studentItem}>
+                {studentName}
+                <button className={styles.removeBtn} onClick={e => { e.stopPropagation(); const st = group.students.find(st => (typeof st==='string'?st:st.username)===studentName); handleRemoveStudent(group._id, st._id); }}>Remove</button>
               </li>
             ))}
           </ul>
 
-          {selectedGroupId === group.id && (
+          {selectedGroupId && (
             <div className={styles.addStudentBox}>
-              <input
-                className={styles.input}
-                type="text"
-                placeholder="Search existing students to add"
-                value={studentSearchTerm}
-                onChange={e => { e.stopPropagation(); setStudentSearchTerm(e.target.value); }}
-              />
-              {studentSearchTerm && (
+              <input className={styles.input} placeholder="Search existing students to add" value={studentSearchTerm} onChange={e => setStudentSearchTerm(e.target.value)} />
+              {studentSearchTerm && filteredMasterStudents().length > 0 && (
                 <ul className={styles.suggestionList}>
-                  {filteredMasterStudents().map(student => (
-                    <li
-                      key={student}
-                      className={styles.suggestionItem}
-                      onClick={e => { e.stopPropagation(); handleAddStudent(group.id, student); }}
-                    >
-                      {student}
-                    </li>
+                  {filteredMasterStudents().map(s => (
+                    <li key={s._id} className={styles.suggestionItem} onClick={() => handleAddStudent(selectedGroupId, s)}>{s.username}</li>
                   ))}
                 </ul>
               )}
