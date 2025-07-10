@@ -1,7 +1,7 @@
 /* InstructorGroups.module.css */
 .container {
   padding: 20px;
-  grid-column: 4/13;
+  grid-column: 3/13;
   overflow-y: auto;
 }
 .title {

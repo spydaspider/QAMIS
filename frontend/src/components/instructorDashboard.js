@@ -11,12 +11,14 @@ import resourcesIcon from '../assets/icons/resources.png';
 import testCaseIcon from '../assets/icons/testcase.png';
 import InstructorControlPanel from './instructorMetricsView';
 import InstructorGroups from './instructorGroups';
+import ExperimentManagement from './experiments';
 
 const InstructorDashboard = () =>{
    
   //add images to the badges
 const badges = [
   { name: 'Dashboard',             icon: dashboardIcon },
+  { name: 'Experiments',             icon: testCaseIcon },
   { name: 'Groups',                icon: groupsIcon    },
   { name: 'QAReports',             icon: reportsIcon        },
   { name: 'LeaderBoard',           icon: leaderBoardIcon },
@@ -30,6 +32,7 @@ const badges = [
     const [selectedBadge, setSelectedBadge] = useState("Dashboard");
     const [showInstructorMetricsView, setShowInstructorMetricsView] = useState(true);
     const [showInstructorGroups, setShowInstructorGroups] = useState(false);
+    const [showExperimentManagement, setShowExperimentManagement] = useState(false);
    /*  const [showDashBoard, setShowDashBoard] = useState(true);
     const [showRestaurants, setShowRestaurants] = useState(false);
     const [showReviews,setShowReviews] = useState(false);
@@ -43,11 +46,20 @@ const badges = [
       {
         setShowInstructorMetricsView(true);
         setShowInstructorGroups(false);
+        setShowExperimentManagement(false);
+      }
+      else if(badge === 'Experiments')
+      {
+         setShowInstructorMetricsView(false);
+        setShowInstructorGroups(false);
+        setShowExperimentManagement(true);
+
       }
       else if(badge === 'Groups')
       {
           setShowInstructorMetricsView(false);
         setShowInstructorGroups(true);
+        setShowExperimentManagement(false);
       }
       /*else if(badge === 'Reviews')
       {
@@ -88,6 +100,7 @@ const badges = [
               </div>
                {showInstructorMetricsView && <InstructorControlPanel/>}
                {showInstructorGroups && <InstructorGroups/>}
+               {showExperimentManagement && <ExperimentManagement/>}
              {/*} {showRestaurants && <RestaurantsAndBars restaurants ={restaurants} handleRefetchData = {handleRefetchData }  />}
               {showReviews && <AdminReviews reviews={reviews}  handleRefetchData = {handleRefetchData } />}
               {showUsers && <AdminUsers  users = {users} handleRefetchData = {handleRefetchData } />}

@@ -1,0 +1,142 @@
+/* experiments.module.css */
+
+/* 2‑column layout: left for listArea, right for formArea */
+.container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  grid-column: 3 / -1;       /* keep out from under left sidebar */
+  padding: 20px;
+  background-color: #f9f9f9;
+  overflow-y: auto;
+  
+}
+
+/* Title spans both columns */
+.title {
+  grid-column: 1 / -1;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+/* Error message spans both columns */
+.error {
+  grid-column: 1 / -1;
+  margin-bottom: 16px;
+  padding: 10px;
+  background-color: #ffe6e6;
+  color: #cc0000;
+  border: 1px solid #f5c2c2;
+  border-radius: 4px;
+}
+
+/* LEFT COLUMN: experiment list */
+.listArea {
+  grid-column: 1;           /* first column */
+  grid-row: 2;              /* align with formArea */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  
+}
+
+/* Individual experiment card */
+.groupCard {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Card header row */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.groupName {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.methodology {
+  margin-left: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+  background-color: #EFEFF4;
+  border-radius: 4px;
+}
+
+.removeBtn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #cc0000;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.removeBtn:hover {
+  color: #b30000;
+}
+
+/* RIGHT COLUMN: search + form */
+.formArea {
+  grid-column: 2;           /* second column */
+  grid-row: 2;              /* align with listArea */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  
+}
+
+/* Search box styling */
+.searchBox {
+  margin-bottom: 8px;
+}
+.searchBox .input {
+  width: 100%;
+}
+
+/* Form controls wrapper */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Form inputs */
+.input {
+  flex: 1;
+  min-width: 180px;
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  transition: border-color 0.2s ease;
+}
+.input:focus {
+  outline: none;
+  border-color: #0066cc;
+}
+
+/* Submit/Edit button */
+.button {
+  padding: 8px 16px;
+  font-size: 14px;
+  background-color: #0066cc;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.button:hover {
+  background-color: #005bb5;
+}
