@@ -4,6 +4,6 @@ const {createExperiment, getAllExperiments, getExperimentById, updateExperiment,
 router.post('/', createExperiment);
 router.get('/', getAllExperiments);
 router.get('/:id', getExperimentById);
-router.put('/:id', updateExperiment);
+router.patch('/:id', updateExperiment);
 router.delete('/:id', deleteExperiment);
 module.exports = router;
