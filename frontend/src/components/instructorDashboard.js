@@ -12,6 +12,7 @@ import testCaseIcon from '../assets/icons/testcase.png';
 import InstructorControlPanel from './instructorMetricsView';
 import InstructorGroups from './instructorGroups';
 import ExperimentManagement from './experiments';
+import ManageTestCases from './testCase';
 
 const InstructorDashboard = () =>{
    
@@ -33,6 +34,8 @@ const badges = [
     const [showInstructorMetricsView, setShowInstructorMetricsView] = useState(true);
     const [showInstructorGroups, setShowInstructorGroups] = useState(false);
     const [showExperimentManagement, setShowExperimentManagement] = useState(false);
+    const [showManageTestCase, setShowManageTestCase] = useState(false);
+    
    /*  const [showDashBoard, setShowDashBoard] = useState(true);
     const [showRestaurants, setShowRestaurants] = useState(false);
     const [showReviews,setShowReviews] = useState(false);
@@ -47,12 +50,14 @@ const badges = [
         setShowInstructorMetricsView(true);
         setShowInstructorGroups(false);
         setShowExperimentManagement(false);
+        setShowManageTestCase(false);
       }
       else if(badge === 'Experiments')
       {
          setShowInstructorMetricsView(false);
         setShowInstructorGroups(false);
         setShowExperimentManagement(true);
+        setShowManageTestCase(false);
 
       }
       else if(badge === 'Groups')
@@ -60,15 +65,17 @@ const badges = [
           setShowInstructorMetricsView(false);
         setShowInstructorGroups(true);
         setShowExperimentManagement(false);
+        setShowManageTestCase(false);
       }
-      /*else if(badge === 'Reviews')
+      else if(badge === 'TestCase')
       {
-        setShowDashBoard(false);
-        setShowRestaurants(false);
-        setShowReviews(true);
-        setShowUsers(false);
+          setShowInstructorMetricsView(false);
+        setShowInstructorGroups(false);
+        setShowExperimentManagement(false);
+        setShowManageTestCase(true);
+        
       }
-      else{
+     /* else{
         setShowDashBoard(false);
         setShowRestaurants(false);
         setShowReviews(false);
@@ -101,6 +108,7 @@ const badges = [
                {showInstructorMetricsView && <InstructorControlPanel/>}
                {showInstructorGroups && <InstructorGroups/>}
                {showExperimentManagement && <ExperimentManagement/>}
+               {showManageTestCase && <ManageTestCases/>}
              {/*} {showRestaurants && <RestaurantsAndBars restaurants ={restaurants} handleRefetchData = {handleRefetchData }  />}
               {showReviews && <AdminReviews reviews={reviews}  handleRefetchData = {handleRefetchData } />}
               {showUsers && <AdminUsers  users = {users} handleRefetchData = {handleRefetchData } />}

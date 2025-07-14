@@ -5,6 +5,7 @@ import App from './App';
 import { AuthContextProvider } from './context/authContext';
 import { GroupsContextProvider } from './context/groupsContext';
 import { ExperimentsContextProvider } from './context/experimentContext';
+import { TestCasesContextProvider } from './context/TestCasesContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -13,7 +14,9 @@ root.render(
     <AuthContextProvider>
       <GroupsContextProvider>
         <ExperimentsContextProvider>
+          <TestCasesContextProvider>
         <App/>
+        </TestCasesContextProvider>
         </ExperimentsContextProvider>
         </GroupsContextProvider>
       </AuthContextProvider>
