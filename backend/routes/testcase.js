@@ -24,7 +24,7 @@ router.get('/team/:teamId', getTestCasesByTeam);
 router.get('/:id', getTestCaseById);
 
 // Update by ID
-router.put('/:id', updateTestCase);
+router.patch('/:id', updateTestCase);
 
 // Delete by ID
 router.delete('/:id', deleteTestCase);

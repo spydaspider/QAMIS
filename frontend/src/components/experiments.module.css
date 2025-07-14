@@ -20,6 +20,8 @@
   gap: 24px;
   padding: 20px;
   background-color: var(--bg-light);
+      grid-column: 3/ -1;       /* keep out from under left sidebar */
+
 }
 
 .title {

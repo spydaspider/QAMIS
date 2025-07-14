@@ -1,4 +1,3 @@
-// src/components/ManageTestCases.js
 import { useState, useEffect } from 'react';
 import { useTestCasesContext } from '../hooks/useTestCasesContext';
 import { useAuthContext } from '../hooks/useAuthContext';
@@ -6,7 +5,7 @@ import styles from './testCase.module.css';
 
 const ManageTestCases = () => {
   const { testCases = [], dispatch } = useTestCasesContext();
-  const { user } = useAuthContext(); // user = { _id, token, ... }
+  const { user } = useAuthContext();
 
   const [teamsList, setTeamsList] = useState([]);
   const [form, setForm] = useState({
@@ -27,8 +26,6 @@ const ManageTestCases = () => {
           headers: { Authorization: `Bearer ${user.token}` }
         });
         const json = await res.json();
-            
-
         if (res.ok) dispatch({ type: 'SET_TESTCASES', payload: json });
         else setError(json.error);
       } catch {
@@ -57,22 +54,26 @@ const ManageTestCases = () => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
   };
+
   const handleTeamSelect = e => {
     const selected = Array.from(e.target.selectedOptions).map(o => o.value);
     setForm(prev => ({ ...prev, assignedTeams: selected }));
   };
+
   const handleAddStep = () => {
     setForm(prev => ({
       ...prev,
       steps: [...prev.steps, { stepNumber: prev.steps.length + 1, action: '', expectedResult: '' }]
     }));
   };
+
   const handleStepChange = (idx, field, val) => {
     setForm(prev => ({
       ...prev,
       steps: prev.steps.map((s, i) => (i === idx ? { ...s, [field]: val } : s))
     }));
   };
+
   const handleRemoveStep = idx => {
     setForm(prev => ({
       ...prev,
@@ -83,7 +84,6 @@ const ManageTestCases = () => {
   const handleSubmit = async e => {
     e.preventDefault();
     setError(null);
-    // attach author (instructor) id
     const { userId } = JSON.parse(localStorage.getItem('user'));
     const payload = { ...form, author: userId };
 
@@ -99,21 +99,29 @@ const ManageTestCases = () => {
         body: JSON.stringify(payload)
       });
       const json = await res.json();
-      if (res.ok) {
-        dispatch({ type: editingId ? 'UPDATE_TESTCASE' : 'CREATE_TESTCASE', payload: json.data });
-        setForm({ title: '', description: '', assignedTeams: [], steps: [] });
-        setEditingId(null);
-      } else {
-        setError(json.error);
+      if (!res.ok) throw new Error(json.error);
+
+      let updatedCase = json;
+      if (editingId) {
+        updatedCase.assignedTeams = teamsList.filter(team => form.assignedTeams.includes(team._id));
+        updatedCase.steps = form.steps;
       }
-    } catch {
-      setError('Failed to submit test case');
+      dispatch({ type: editingId ? 'UPDATE_TESTCASE' : 'CREATE_TESTCASE', payload: updatedCase });
+      setForm({ title: '', description: '', assignedTeams: [], steps: [] });
+      setEditingId(null);
+    } catch (err) {
+      setError(err.message || 'Failed to submit test case');
     }
   };
 
   const handleEdit = tc => {
     setEditingId(tc._id);
-    setForm({ title: tc.title, description: tc.description, assignedTeams: tc.assignedTeams, steps: tc.steps });
+    setForm({
+      title: tc.title,
+      description: tc.description,
+      assignedTeams: tc.assignedTeams.map(t => t._id),
+      steps: tc.steps
+    });
     setError(null);
   };
 
@@ -124,18 +132,17 @@ const ManageTestCases = () => {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${user.token}` }
       });
-      const json = await res.json();
-      if (res.ok) {
-        dispatch({ type: 'DELETE_TESTCASE', payload: id });
-        if (editingId === id) {
-          setEditingId(null);
-          setForm({ title: '', description: '', assignedTeams: [], steps: [] });
-        }
-      } else {
-        setError(json.error || 'Delete failed');
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error || 'Delete failed');
       }
-    } catch {
-      setError('Failed to delete test case');
+      dispatch({ type: 'DELETE_TESTCASE', payload: id });
+      if (editingId === id) {
+        setEditingId(null);
+        setForm({ title: '', description: '', assignedTeams: [], steps: [] });
+      }
+    } catch (err) {
+      setError(err.message);
     }
   };
 
@@ -149,7 +156,6 @@ const ManageTestCases = () => {
     <div className={styles.container}>
       {error && <div className={styles.error}>{error}</div>}
       <h2 className={styles.title}>Test Case Management</h2>
-
       <div className={styles.listArea}>
         {testCases.length > 0 ? (
           testCases.map(tc => (
@@ -160,10 +166,12 @@ const ManageTestCases = () => {
                 <button className={styles.button} onClick={() => handleEdit(tc)}>Edit</button>
               </div>
               <p>{tc.description}</p>
-<small>Teams: {tc.assignedTeams.map(team => team.name).join(', ')}</small>
+              <small>Teams: {tc.assignedTeams.map(team => team.name).join(', ')}</small>
               {tc.steps.length > 0 && (
                 <ul>
-                  {tc.steps.map(s => (<li key={s.stepNumber}>{`${s.stepNumber}. ${s.action} → ${s.expectedResult}`}</li>))}
+                  {tc.steps.map(s => (
+                    <li key={s.stepNumber}>{`${s.stepNumber}. ${s.action} → ${s.expectedResult}`}</li>
+                  ))}
                 </ul>
               )}
             </div>
@@ -172,19 +180,18 @@ const ManageTestCases = () => {
           <div className={styles.emptyMessage}>No test cases available.</div>
         )}
       </div>
-
       <div className={styles.formArea}>
         <form className={styles.controls} onSubmit={handleSubmit}>
           <input className={styles.input} name="title" placeholder="Title" value={form.title} onChange={handleChange} required />
           <input className={styles.input} name="description" placeholder="Description" value={form.description} onChange={handleChange} required />
           <select multiple className={styles.select} value={form.assignedTeams} onChange={handleTeamSelect}>
-            {teamsList.map(team => (<option key={team._id} value={team._id}>{team.name}</option>))}
+            {teamsList.map(team => <option key={team._id} value={team._id}>{team.name}</option>)}
           </select>
           <div className={styles.stepList}>
             {form.steps.map((step, idx) => (
               <div key={idx} className={styles.stepItem}>
-                <input className={styles.stepInput} placeholder="Action" value={step.action} onChange={e => handleStepChange(idx,'action',e.target.value)} required />
-                <input className={styles.stepInput} placeholder="Expected Result" value={step.expectedResult} onChange={e => handleStepChange(idx,'expectedResult',e.target.value)} required />
+                <input className={styles.stepInput} placeholder="Action" value={step.action} onChange={e => handleStepChange(idx, 'action', e.target.value)} required />
+                <input className={styles.stepInput} placeholder="Expected Result" value={step.expectedResult} onChange={e => handleStepChange(idx, 'expectedResult', e.target.value)} required />
                 <button type="button" className={styles.removeBtn} onClick={() => handleRemoveStep(idx)}>−</button>
               </div>
             ))}
