@@ -5,6 +5,7 @@ import logBugsIcon from '../assets/icons/logBugs.png';
 import myBugsIcon from '../assets/icons/myBugs.png';
 import leaderBoardIcon from '../assets/icons/leaderboard.png';
 import discussionIcon from '../assets/icons/discussion.png';
+import LogBug from "../components/logBug.js";
 
 
 const StudentDashboard = () =>{
@@ -20,23 +21,16 @@ const badges = [
 ];
     const message = "Instructor Dashboard";
     const [selectedBadge, setSelectedBadge] = useState("Dashboard");
-   /*  const [showDashBoard, setShowDashBoard] = useState(true);
-    const [showRestaurants, setShowRestaurants] = useState(false);
-    const [showReviews,setShowReviews] = useState(false);
-    const [showUsers, setShowUsers] = useState(false);
- */
-
+    const [showLogBug, setShowLogBug] = useState(false);
   // Handle button click to update the selected state
   const handleBadgeClick = (badge) => {
     setSelectedBadge(badge);
-    /*   if(badge === 'Dashboard')
+       if(badge === 'Log a Bug')
       {
-        setShowDashBoard(true);
-        setShowRestaurants(false);
-        setShowReviews(false);
-        setShowUsers(false);
+        setShowLogBug(true);
+       
       }
-      else if(badge === 'Restaurants')
+    /*  else if(badge === 'Restaurants')
       {
         setShowDashBoard(false);
         setShowRestaurants(true);
@@ -85,6 +79,7 @@ const badges = [
               {showReviews && <AdminReviews reviews={reviews}  handleRefetchData = {handleRefetchData } />}
               {showUsers && <AdminUsers  users = {users} handleRefetchData = {handleRefetchData } />}
               */}
+              {showLogBug && <LogBug/>}
               
             </div>
             

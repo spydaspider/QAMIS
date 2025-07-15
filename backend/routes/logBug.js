@@ -27,7 +27,7 @@ router.get('/:id', getBugById);
 router.patch('/:id/status', changeStatus);
 
 // Update bug fields (excluding status)
-router.put('/:id', updateBug);
+router.patch('/:id', updateBug);
 
 // Delete a bug by ID
 router.delete('/:id', deleteBug);
