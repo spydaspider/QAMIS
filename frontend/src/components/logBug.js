@@ -12,14 +12,14 @@ const LogBug = () => {
     title: '',
     description: '',
     severity: 'medium',
-    reproductionSteps: [],
-    screenshots: []
+    reproductionSteps: []
   });
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState(null);
   const [teamId, setTeamId] = useState('');
   const [teamName, setTeamName] = useState('');
 
+  // Fetch teams and bugs on mount
   useEffect(() => {
     if (!user) return;
     const userId = JSON.parse(localStorage.getItem('user')).userId;
@@ -42,7 +42,7 @@ const LogBug = () => {
       .then(res => res.json())
       .then(data => {
         const allBugs = Array.isArray(data) ? data : data.data;
-        const bugsList = allBugs.filter(bug => bug?.reporter?._id === userId);
+        const bugsList = allBugs.filter(b => b.reporter._id === userId);
         dispatch({ type: 'SET_BUGS', payload: bugsList });
       })
       .catch(() => dispatch({ type: 'SET_BUGS', payload: [] }));
@@ -52,8 +52,6 @@ const LogBug = () => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
   };
-
-  const handleFiles = e => setForm(prev => ({ ...prev, screenshots: Array.from(e.target.files) }));
 
   const handleAddStep = () => {
     setForm(prev => ({
@@ -72,15 +70,15 @@ const LogBug = () => {
   const handleRemoveStep = idx => {
     setForm(prev => ({
       ...prev,
-      reproductionSteps: prev.reproductionSteps.filter((_, i) => i !== idx).map((s, i) => ({ ...s, stepNumber: i + 1 }))
+      reproductionSteps: prev.reproductionSteps
+        .filter((_, i) => i !== idx)
+        .map((s, i) => ({ ...s, stepNumber: i + 1 }))
     }));
   };
 
   const handleSubmit = async e => {
     e.preventDefault();
     setError(null);
-    const userId = JSON.parse(localStorage.getItem('user')).userId;
-
     if (!teamId) {
       setError('Cannot determine your team. Please contact your instructor.');
       return;
@@ -100,23 +98,22 @@ const LogBug = () => {
       title: form.title,
       description: form.description,
       severity: form.severity,
-      reporter: userId,
       team: teamId,
-      reproductionSteps: form.reproductionSteps,
-      screenshots: form.screenshots
+      reproductionSteps: form.reproductionSteps
     };
 
     try {
       const url = editingId ? `/api/logBug/${editingId}` : '/api/logBug';
+      const method = editingId ? 'PUT' : 'POST';
       const res = await fetch(url, {
-        method: editingId ? 'PATCH' : 'POST',
+        method,
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user.token}` },
         body: JSON.stringify(payload)
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Failed to save bug');
       dispatch({ type: editingId ? 'UPDATE_BUG' : 'CREATE_BUG', payload: json });
-      setForm({ title: '', description: '', severity: 'medium', reproductionSteps: [], screenshots: [] });
+      setForm({ title: '', description: '', severity: 'medium', reproductionSteps: [] });
       setEditingId(null);
     } catch (err) {
       setError(err.message);
@@ -146,8 +143,10 @@ const LogBug = () => {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${user.token}` }
       });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || 'Delete failed');
+      if (res.status !== 204) {
+        const json = await res.json();
+        throw new Error(json.error || 'Delete failed');
+      }
       dispatch({ type: 'DELETE_BUG', payload: id });
       if (editingId === id) setEditingId(null);
     } catch (err) {
@@ -161,8 +160,7 @@ const LogBug = () => {
       title: bug.title,
       description: bug.description,
       severity: bug.severity,
-      reproductionSteps: bug.reproductionSteps,
-      screenshots: bug.screenshots || []
+      reproductionSteps: bug.reproductionSteps
     });
     setError(null);
   };
@@ -172,9 +170,9 @@ const LogBug = () => {
       {error && <div className={styles.error}>{error}</div>}
       <h2 className={styles.title}>{editingId ? 'Update Bug' : 'Log Bug'}</h2>
       {teamId ? (
-        <div style={{ marginBottom: '8px', color: '#333' }}><strong>Team:</strong> {teamName} (ID: {teamId})</div>
+        <div className={styles.teamInfo}><strong>Team:</strong> {teamName}</div>
       ) : (
-        <div style={{ marginBottom: '8px', color: '#cc0000' }}><em>Team not yet determined</em></div>
+        <div className={styles.teamMissing}>Team not yet determined</div>
       )}
 
       <div className={styles.listArea}>
@@ -185,9 +183,13 @@ const LogBug = () => {
             <div key={bug._id} className={styles.groupCard}>
               <div className={styles.header}>
                 <h3 className={styles.groupName}>{bug.title}</h3>
-                <select className={styles.statusSelect} value={bug.currentStatus} onChange={e => handleStatusChange(bug._id, e.target.value)}>
+                <select
+                  className={styles.statusSelect}
+                  value={bug.currentStatus}
+                  onChange={e => handleStatusChange(bug._id, e.target.value)}
+                >
                   <option value="open">Open</option>
-                  <option value="in-progress">In Progress</option>
+                  <option value="in review">In Review</option>
                   <option value="resolved">Resolved</option>
                   <option value="closed">Closed</option>
                 </select>
@@ -198,13 +200,10 @@ const LogBug = () => {
               <small>Severity: {bug.severity}</small>
               {bug.reproductionSteps.length > 0 && (
                 <ul>
-                  {bug.reproductionSteps.map(s => <li key={s.stepNumber}>{`${s.stepNumber}. ${s.action}`}</li>)}
+                  {bug.reproductionSteps.map(s => (
+                    <li key={s.stepNumber}>{`${s.stepNumber}. ${s.action}`}</li>
+                  ))}
                 </ul>
-              )}
-              {bug.screenshots?.length > 0 && (
-                <div className={styles.previewArea}>
-                  {bug.screenshots.map((url, i) => <img key={i} src={url} alt={`screenshot-${i}`} className={styles.previewImg} />)}
-                </div>
               )}
             </div>
           ))
@@ -213,28 +212,63 @@ const LogBug = () => {
 
       <div className={styles.formArea}>
         <form className={styles.controls} onSubmit={handleSubmit}>
-          <input className={styles.input} name="title" placeholder="Title" value={form.title} onChange={handleChange} required />
-          <input className={styles.input} name="description" placeholder="Description" value={form.description} onChange={handleChange} required />
-          <select className={styles.input} name="severity" value={form.severity} onChange={handleChange}>
+          <input
+            className={styles.input}
+            name="title"
+            placeholder="Title"
+            value={form.title}
+            onChange={handleChange}
+            required
+          />
+          <input
+            className={styles.input}
+            name="description"
+            placeholder="Description"
+            value={form.description}
+            onChange={handleChange}
+            required
+          />
+          <select
+            className={styles.input}
+            name="severity"
+            value={form.severity}
+            onChange={handleChange}
+          >
             <option value="low">Low</option>
             <option value="medium">Medium</option>
             <option value="high">High</option>
             <option value="critical">Critical</option>
           </select>
-          <div>
-            <label>Upload Screenshots:</label>
-            <input type="file" multiple className={styles.fileInput} onChange={handleFiles} />
-          </div>
           <div className={styles.stepList}>
             {form.reproductionSteps.map((step, idx) => (
               <div key={idx} className={styles.stepItem}>
-                <input className={styles.stepInput} placeholder="Action" value={step.action} onChange={e => handleStepChange(idx, e.target.value)} required />
-                <button type="button" className={styles.removeBtn} onClick={() => handleRemoveStep(idx)}>−</button>
+                <input
+                  className={styles.stepInput}
+                  placeholder="Action"
+                  value={step.action}
+                  onChange={e => handleStepChange(idx, e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  className={styles.removeBtn}
+                  onClick={() => handleRemoveStep(idx)}
+                >
+                  −
+                </button>
               </div>
             ))}
-            <button type="button" className={styles.addStepBtn} onClick={handleAddStep}>Add Step</button>
+            <button
+              type="button"
+              className={styles.addStepBtn}
+              onClick={handleAddStep}
+            >
+              Add Step
+            </button>
           </div>
-          <button className={styles.submitBtn} type="submit">{editingId ? 'Update Bug' : 'Log Bug'}</button>
+          <button className={styles.submitBtn} type="submit">
+            {editingId ? 'Update Bug' : 'Log Bug'}
+          </button>
         </form>
       </div>
     </div>
