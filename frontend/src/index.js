@@ -7,7 +7,7 @@ import { GroupsContextProvider } from './context/groupsContext';
 import { ExperimentsContextProvider } from './context/experimentContext';
 import { TestCasesContextProvider } from './context/TestCasesContext';
 import { BugsContextProvider } from './context/logBugContext';
-
+import { SprintContextProvider } from './context/sprintContext';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   
@@ -17,7 +17,9 @@ root.render(
         <ExperimentsContextProvider>
           <TestCasesContextProvider>
             <BugsContextProvider>
+              <SprintContextProvider>
         <App/>
+              </SprintContextProvider>
         </BugsContextProvider>
         </TestCasesContextProvider>
         </ExperimentsContextProvider>
