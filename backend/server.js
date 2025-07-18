@@ -6,7 +6,8 @@ const users = require('./routes/users.js');
 const testCases = require('./routes/testCase.js');
 const logBug = require('./routes/logBug.js');
 const discussionThread = require('./routes/discussionThread.js');
-const performanceMetrics = require('./routes/performanceMetrics.js')
+const performanceMetrics = require('./routes/performanceMetrics.js');
+const sprints = require('./routes/sprint.js');
 require('dotenv').config();
 
 const app = express();
@@ -26,7 +27,8 @@ app.use('/api/teams', teams);
 app.use('/api/testCases', testCases);
 app.use('/api/logBug',logBug);
 app.use('/api/discussionThread', discussionThread);
-app.use('/api/performanceMetrics', performanceMetrics)
+app.use('/api/performanceMetrics', performanceMetrics);
+app.use('/api/sprints', sprints);
  mongoose.connect(process.env.MONGO_URI).then(()=>{
     app.listen(PORT,()=>{    
         console.log("connected to the mongoose server on ", PORT);

@@ -9,11 +9,10 @@ const {
   getSprintById,
   updateSprint,
   deleteSprint
-} = require('../controllers/sprintController');
+} = require('../controllers/sprint.js');
 const auth = require('../middleware/auth');
 
 // All sprint routes require authentication
-type
 router.use(auth);
 
 // Create a new sprint
