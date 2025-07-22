@@ -7,6 +7,7 @@ import leaderBoardIcon from '../assets/icons/leaderboard.png';
 import discussionIcon from '../assets/icons/discussion.png';
 import LogBug from "../components/logBug.js";
 import ManageSprints from './sprintManagement.js';
+import TestCaseExecution from './testCaseExecution.js';
 
 
 const StudentDashboard = () =>{
@@ -15,9 +16,9 @@ const StudentDashboard = () =>{
 const badges = [
   { name: 'Dashboard',             icon: dashboardIcon },
   { name: 'Log a Bug',                icon: logBugsIcon    },
-  {name: 'Sprints',                  icon: logBugsIcon},
+  {name: 'Defect Data',                  icon: logBugsIcon},
   { name: 'My Bugs',             icon: myBugsIcon       },
-  { name: 'Test Cases',           icon: leaderBoardIcon },
+  { name: 'Test Case Execution',           icon: leaderBoardIcon },
   { name: 'Discussion',           icon: discussionIcon},
  
 ];
@@ -25,6 +26,7 @@ const badges = [
     const [selectedBadge, setSelectedBadge] = useState("Dashboard");
     const [showLogBug, setShowLogBug] = useState(false);
     const [showSprints, setShowSprints] = useState(false);
+    const [showTestCaseExecution, setShowTestCaseExecution] = useState(false);
   // Handle button click to update the selected state
   const handleBadgeClick = (badge) => {
     setSelectedBadge(badge);
@@ -32,21 +34,22 @@ const badges = [
       {
         setShowLogBug(true);
         setShowSprints(false);
-       
+        setShowTestCaseExecution(false);
       }
-      else if(badge === 'Sprints')
+      else if(badge === 'Defect Data')
       {
        setShowLogBug(false);
        setShowSprints(true);
+       setShowTestCaseExecution(false);
       }
-      /*else if(badge === 'Reviews')
+      else if(badge === 'Test Case Execution')
       {
-        setShowDashBoard(false);
-        setShowRestaurants(false);
-        setShowReviews(true);
-        setShowUsers(false);
+        setShowLogBug(false);
+       setShowSprints(false);
+       setShowTestCaseExecution(true);
+       
       }
-      else{
+      /*else{
         setShowDashBoard(false);
         setShowRestaurants(false);
         setShowReviews(false);
@@ -83,6 +86,7 @@ const badges = [
               */}
               {showLogBug && <LogBug/>}
               {showSprints && <ManageSprints/>}
+              {showTestCaseExecution && <TestCaseExecution/>}
               
             </div>
             

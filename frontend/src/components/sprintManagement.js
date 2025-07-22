@@ -121,7 +121,7 @@ const ManageSprints = () => {
   return (
     <div className={styles.container}>
       {error && <div className={styles.error}>{error}</div>}
-      <h2 className={styles.title}>{editingId ? 'Update Sprint' : 'New Sprint'}</h2>
+      <h2 className={styles.title}>{editingId ? 'Update Sprint' : 'New Sprint or Final Project'}</h2>
 
       <div className={styles.listArea}>
         {sprints.map(s => (
@@ -144,7 +144,7 @@ const ManageSprints = () => {
           <input
             className={styles.input}
             name="name"
-            placeholder="Sprint Name"
+            placeholder="Sprint Name or Final Project"
             value={form.name}
             onChange={handleChange}
             required
@@ -169,7 +169,7 @@ const ManageSprints = () => {
             className={styles.input}
             type="number"
             name="codeSizeKloc"
-            placeholder="Code Size (KLOC)"
+            placeholder="Code Size (KLOC)/ LOC"
             value={form.codeSizeKloc}
             onChange={handleChange}
             required
