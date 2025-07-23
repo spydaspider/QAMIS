@@ -8,6 +8,7 @@ import discussionIcon from '../assets/icons/discussion.png';
 import LogBug from "../components/logBug.js";
 import ManageSprints from './sprintManagement.js';
 import TestCaseExecution from './testCaseExecution.js';
+import DiscussionThread from './studentDiscussion.js';
 
 
 const StudentDashboard = () =>{
@@ -27,6 +28,7 @@ const badges = [
     const [showLogBug, setShowLogBug] = useState(false);
     const [showSprints, setShowSprints] = useState(false);
     const [showTestCaseExecution, setShowTestCaseExecution] = useState(false);
+    const [showDiscussionThread, setShowDiscussionThread] = useState(false);
   // Handle button click to update the selected state
   const handleBadgeClick = (badge) => {
     setSelectedBadge(badge);
@@ -35,19 +37,30 @@ const badges = [
         setShowLogBug(true);
         setShowSprints(false);
         setShowTestCaseExecution(false);
+        setShowDiscussionThread(false);
       }
       else if(badge === 'Defect Data')
       {
        setShowLogBug(false);
        setShowSprints(true);
        setShowTestCaseExecution(false);
+       setShowDiscussionThread(false);
       }
       else if(badge === 'Test Case Execution')
       {
         setShowLogBug(false);
        setShowSprints(false);
        setShowTestCaseExecution(true);
+       setShowDiscussionThread(false);
        
+      }
+      else if(badge === 'Discussion')
+      {
+       setShowLogBug(false);
+       setShowSprints(false);
+       setShowTestCaseExecution(false);
+       setShowDiscussionThread(true);
+
       }
       /*else{
         setShowDashBoard(false);
@@ -87,6 +100,7 @@ const badges = [
               {showLogBug && <LogBug/>}
               {showSprints && <ManageSprints/>}
               {showTestCaseExecution && <TestCaseExecution/>}
+              {showDiscussionThread && <DiscussionThread/>}
               
             </div>
             

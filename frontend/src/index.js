@@ -8,6 +8,7 @@ import { ExperimentsContextProvider } from './context/experimentContext';
 import { TestCasesContextProvider } from './context/TestCasesContext';
 import { BugsContextProvider } from './context/logBugContext';
 import { SprintContextProvider } from './context/sprintContext';
+import { DiscussionProvider } from './context/discussionThreadContext';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   
@@ -18,7 +19,9 @@ root.render(
           <TestCasesContextProvider>
             <BugsContextProvider>
               <SprintContextProvider>
-        <App/>
+                <DiscussionProvider>
+                  <App/>
+                </DiscussionProvider>
               </SprintContextProvider>
         </BugsContextProvider>
         </TestCasesContextProvider>
