@@ -1,7 +1,7 @@
-import { useContext } from "react";
-import { DiscussionContext } from "../context/discussionThreadContext";
+import { useContext } from 'react';
+import { DiscussionContext } from '../context/discussionThreadContext';
 export const useDiscussionContext = () => {
-  const context = useContext(DiscussionContext);
-  if (!context) throw new Error('useDiscussionContext must be used within a DiscussionProvider');
-  return context;
+  const ctx = useContext(DiscussionContext);
+  if (!ctx) throw new Error('useDiscussionContext must be inside DiscussionProvider');
+  return ctx;
 };
