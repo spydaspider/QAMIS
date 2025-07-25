@@ -4,6 +4,7 @@ import { useState, useEffect, useContext } from 'react';
 import { useAuthContext } from '../hooks/useAuthContext';
 import { useTestCasesContext } from '../hooks/useTestCasesContext';
 import styles from './testCaseExecution.module.css';
+import Loader from './loader';
 
 const TestCaseExecution = () => {
   const { testCases, dispatch } = useTestCasesContext();
@@ -14,6 +15,7 @@ const TestCaseExecution = () => {
   const [error, setError] = useState(null);
   const [execForm, setExecForm] = useState({ status: 'not run', actualResult: '', comments: '' });
   const [editingExec, setEditingExec] = useState({ caseId: null, idx: null });
+  const [loading, setLoading] = useState(true);
 
   // Fetch teams the user belongs to and auto-select
   useEffect(() => {
@@ -46,6 +48,10 @@ const TestCaseExecution = () => {
       } catch {
         setError('Failed to load test cases');
       }
+      finally{
+        setLoading(false);
+      }
+      
     })();
   }, [user, selectedTeam, dispatch]);
 
@@ -128,7 +134,7 @@ const TestCaseExecution = () => {
     setExecForm({ status: exec.status, actualResult: exec.actualResult, comments: exec.comments });
     setEditingExec({ caseId: tcId, idx });
   };
-
+  if(loading) return <Loader/>;
   return (
     <div className={styles.container}>
       {error && <div className={styles.error}>{error}</div>}

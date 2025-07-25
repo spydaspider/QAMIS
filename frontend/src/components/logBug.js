@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useLogBugContext } from '../hooks/useLogBugContext';
 import { useAuthContext } from '../hooks/useAuthContext';
 import styles from './logBug.module.css';
+import Loader from './loader';
 
 const LogBug = () => {
   const { bugs = [], dispatch } = useLogBugContext();
@@ -18,6 +19,7 @@ const LogBug = () => {
   const [error, setError] = useState(null);
   const [teamId, setTeamId] = useState('');
   const [teamName, setTeamName] = useState('');
+  const [loading, setLoading] = useState(true);
 
   // Fetch teams and bugs on mount
   useEffect(() => {
@@ -45,7 +47,10 @@ const LogBug = () => {
         const bugsList = allBugs.filter(b => b.reporter._id === userId);
         dispatch({ type: 'SET_BUGS', payload: bugsList });
       })
-      .catch(() => dispatch({ type: 'SET_BUGS', payload: [] }));
+      .catch(() => dispatch({ type: 'SET_BUGS', payload: [] })).finally(() => {
+        // stop loading regardless of success/failure
+        setLoading(false);
+      });
   }, [user, dispatch]);
 
   const handleChange = e => {
@@ -164,7 +169,7 @@ const LogBug = () => {
     });
     setError(null);
   };
-
+    if(loading) return <Loader/>
   return (
     <div className={styles.container}>
       {error && <div className={styles.error}>{error}</div>}

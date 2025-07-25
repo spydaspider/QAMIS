@@ -3,6 +3,7 @@ import { useAuthContext } from '../hooks/useAuthContext';
 import { DiscussionContext } from '../context/discussionThreadContext.js';
 import DiscussionThread from './discussionThread.js';
 import styles from './myBugs.module.css';
+import Loader from './loader.js';
 
 export default function BugList() {
   const { user }         = useAuthContext();
@@ -10,9 +11,10 @@ export default function BugList() {
   const [bugs, setBugs]    = useState([]);
   const [error, setError]  = useState(null);
   const [visible, setVisible] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log(user);
+    
     if (!user) return;
     (async () => {
       try {
@@ -44,12 +46,16 @@ export default function BugList() {
       } catch (err) {
         setError(err.message);
       }
+      finally{
+        setLoading(false);
+      }
     })();
   }, [user, dispatch]);
 
   const toggle = id => setVisible(v => ({ ...v, [id]: !v[id] }));
 
   if (!user) return <p>Please log in to view bugs.</p>;
+  if(loading) return <Loader/>;
 
   return (
     <div className={styles.feed}>

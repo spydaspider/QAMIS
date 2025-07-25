@@ -18,9 +18,9 @@ const badges = [
   { name: 'Dashboard',             icon: dashboardIcon },
   { name: 'Log a Bug',                icon: logBugsIcon    },
   {name: 'Defect Data',                  icon: logBugsIcon},
-  { name: 'My Bugs',             icon: myBugsIcon       },
+  { name: 'Bugs Discussion',             icon: myBugsIcon       },
   { name: 'Test Case Execution',           icon: leaderBoardIcon },
-  { name: 'Discussion',           icon: discussionIcon},
+  { name: 'Test Case Discussion',           icon: discussionIcon},
  
 ];
     const message = "Instructor Dashboard";
@@ -54,7 +54,7 @@ const badges = [
        setShowMyBugs(false);
        
       }
-      else if(badge === 'My Bugs')
+      else if(badge === 'Bugs Discussion')
       {
        setShowLogBug(false);
        setShowSprints(false);
