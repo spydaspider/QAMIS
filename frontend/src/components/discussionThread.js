@@ -3,31 +3,39 @@ import { useAuthContext } from '../hooks/useAuthContext.js';
 import { useDiscussionContext } from '../hooks/useDiscussionThreadContext.js';
 import styles from './discussionThread.module.css';
 
-const DiscussionThread = ({ parentType, parentId }) => {
+// Now accepts an optional initialThreadId prop
+const DiscussionThread = ({ parentType, parentId, initialThreadId }) => {
   const { thread, dispatch } = useDiscussionContext();
   const { user } = useAuthContext();
-  const [newThreadTitle, setNewThreadTitle] = useState('');
   const [formContent, setFormContent] = useState('');
   const [replyTo, setReplyTo] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState(null);
 
-  // Create or load thread
+  // Load existing thread by ID or by parent reference if initialThreadId not provided
   useEffect(() => {
-    (async () => {
+    const fetchThread = async () => {
       try {
-        // Attempt to fetch existing thread
-        const res = await fetch(
-          `/api/discussionThread?parentType=${parentType}&parentId=${parentId}`,
-          { headers: user && { Authorization: `Bearer ${user.token}` } }
-        );
+        let url = `/api/discussionThread/${initialThreadId || thread?._id}`;
+        if (!initialThreadId && !thread?._id) {
+          // If no existing thread, skip
+          return;
+        }
+        const res = await fetch(url, {
+          headers: user
+            ? { Authorization: `Bearer ${user.token}` }
+            : {}
+        });
         const data = await res.json();
-        if (res.ok && data.thread) {
+        if (res.ok && data.success) {
           dispatch({ type: 'SET_THREAD', payload: data.thread });
         }
-      } catch { /* ignore */ }
-    })();
-  }, [parentType, parentId, user, dispatch]);
+      } catch {
+        // ignore fetch errors
+      }
+    };
+    fetchThread();
+  }, [initialThreadId, thread?._id, user, dispatch]);
 
   const createThread = async () => {
     setError(null);
@@ -41,97 +49,84 @@ const DiscussionThread = ({ parentType, parentId }) => {
         body: JSON.stringify({ parentType, parentId })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+      if (!res.ok || !data.success) throw new Error(data.message);
       dispatch({ type: 'SET_THREAD', payload: data.thread });
     } catch (err) {
       setError(err.message);
     }
   };
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formContent.trim()) return setError('Content cannot be empty');
+    if (!thread?._id) return;
     setError(null);
 
     try {
-      let url, method = 'POST', body = { author: user.userId, content: formContent };
-      if (!thread) return; // no thread
-      if (editingId) {
-        url = `/api/discussionThread/${thread._id}/comments/${editingId}`;
-        method = 'PUT';
-      } else if (replyTo) {
-        url = `/api/discussionThread/${thread._id}/comments/${replyTo}`;
-        method = 'POST';
-      } else {
-        url = `/api/discussionThread/${thread._id}/comments`;
+      let url = `/api/discussionThread/${thread._id}/comments`;
+      const method = replyTo ? 'POST' : 'POST';
+      let endpoint = url;
+      if (replyTo) {
+        endpoint += `/${replyTo}/reply`;
       }
-
-      const res = await fetch(url, {
+      const res = await fetch(endpoint, {
         method,
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${user.token}`
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify({ content: formContent })
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+      if (!res.ok || !data.success) throw new Error(data.message);
 
-      if (editingId) {
-        dispatch({ type: 'UPDATE_COMMENT', payload: data.comment });
-      } else if (replyTo) {
-        dispatch({
-          type: 'ADD_REPLY',
-          payload: { parentCommentId: replyTo, reply: data.reply }
-        });
+      if (replyTo) {
+        dispatch({ type: 'ADD_REPLY', payload: { parentCommentId: replyTo, reply: data.reply } });
       } else {
         dispatch({ type: 'ADD_COMMENT', payload: data.comment });
       }
 
-      // reset form
       setFormContent('');
       setReplyTo(null);
-      setEditingId(null);
     } catch (err) {
       setError(err.message);
     }
   };
 
-  const startReply = id => {
+  const startReply = (id) => {
     setReplyTo(id);
     setEditingId(null);
     setError(null);
   };
 
-  const startEdit = c => {
-    setEditingId(c._id);
-    setReplyTo(null);
-    setFormContent(c.content);
-    setError(null);
-  };
+  // Optionally implement editing when backend supports it
 
-  const handleDelete = async id => {
+  // Delete the entire thread
+  const handleDeleteThread = async () => {
+    if (!thread?._id) return;
     try {
       const res = await fetch(
-        `/api/discussionThread/${thread._id}/comments/${id}`,
+        `/api/discussionThread/${thread._id}`,
         {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${user.token}` }
         }
       );
-      if (res.status !== 204) {
+      if (res.status === 204) {
+        dispatch({ type: 'CLEAR_THREAD' });
+      } else {
         const data = await res.json();
         throw new Error(data.message);
       }
-      dispatch({ type: 'DELETE_COMMENT', payload: id });
     } catch (err) {
       setError(err.message);
     }
   };
 
   if (!user) return <p>Please log in to view discussions.</p>;
-  if (!thread)
+
+  if (!thread) {
     return (
       <div className={styles.container}>
         {error && <div className={styles.error}>{error}</div>}
@@ -140,38 +135,36 @@ const DiscussionThread = ({ parentType, parentId }) => {
         </button>
       </div>
     );
+  }
 
-  const renderComments = (comments, level = 0) =>
-    comments.map(c => (
+  const renderComments = (comments = [], level = 0) =>
+    comments.map((c) => (
       <div
         key={c._id}
         className={styles.commentCard}
         style={{ marginLeft: level * 20 }}
       >
         <div className={styles.header}>
-          <strong>{c.author.name}</strong>
-          <div>
-            <button onClick={() => startReply(c._id)} className={styles.smallBtn}>
-              Reply
-            </button>
-            <button onClick={() => startEdit(c)} className={styles.smallBtn}>
-              Edit
-            </button>
-            <button onClick={() => handleDelete(c._id)} className={styles.smallBtn}>
-              Delete
-            </button>
-          </div>
+          <strong>{c.author?.name || 'Unknown'}</strong>
+          <button onClick={() => startReply(c._id)} className={styles.smallBtn}>
+            Reply
+          </button>
         </div>
         <p>{c.content}</p>
         <small>{new Date(c.createdAt).toLocaleString()}</small>
-        {c.replies && renderComments(c.replies, level + 1)}
+        {renderComments(c.replies, level + 1)}
       </div>
     ));
 
   return (
     <div className={styles.container}>
       {error && <div className={styles.error}>{error}</div>}
-      <h2 className={styles.title}>Discussion</h2>
+      <div className={styles.headerBar}>
+        <h2 className={styles.title}>Discussion</h2>
+        <button onClick={handleDeleteThread} className={styles.smallBtn}>
+          Delete Thread
+        </button>
+      </div>
       <div className={styles.threadArea}>{renderComments(thread.comments)}</div>
 
       <form className={styles.formArea} onSubmit={handleSubmit}>
@@ -179,16 +172,14 @@ const DiscussionThread = ({ parentType, parentId }) => {
           className={styles.textarea}
           value={formContent}
           placeholder={
-            editingId
-              ? 'Edit your comment…'
-              : replyTo
+            replyTo
               ? 'Write your reply…'
               : 'Write a comment…'
           }
-          onChange={e => setFormContent(e.target.value)}
+          onChange={(e) => setFormContent(e.target.value)}
         />
         <button type="submit" className={styles.button}>
-          {editingId ? 'Update' : 'Post'}
+          {replyTo ? 'Reply' : 'Post'}
         </button>
       </form>
     </div>

@@ -1,4 +1,6 @@
-.container {
+
+
+ .container {
   grid-column: 3 / -1;
   padding: 20px;
   background: var(--color-bg);
@@ -9,6 +11,29 @@
   max-height: calc(100vh - 40px);
   overflow-y: auto;
 }
+
+.headerBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+
+.threadArea {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 60vh; /* adjust as needed */
+}
+
 
 .title {
   font-size: 1.5rem;

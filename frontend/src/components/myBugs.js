@@ -20,7 +20,6 @@ export default function BugList() {
           headers: { Authorization: `Bearer ${user.token}` }
         });
         const data = await res.json();
-        console.log(data);
         if (!res.ok) throw new Error(data.message || 'Failed to load bugs');
         setBugs(data || []);
       } catch (err) {
@@ -31,7 +30,7 @@ export default function BugList() {
 
   if (!user) return <p>Please log in to view bugs.</p>;
 
-  // Filter by title or description (case insensitive)
+  // Filter by title or description
   const filtered = bugs.filter(b =>
     b.title.toLowerCase().includes(filter.toLowerCase()) ||
     b.description.toLowerCase().includes(filter.toLowerCase())
@@ -41,40 +40,45 @@ export default function BugList() {
     <div className={styles.container}>
       {error && <div className={styles.error}>{error}</div>}
 
-      {/* Search box */}
-      <input
-        type="text"
-        placeholder="Search bugs..."
-        className={styles.search}
-        value={filter}
-        onChange={e => setFilter(e.target.value)}
-      />
-
-      {filtered.length === 0 && (
-        <p className={styles.noResults}>
-          {filter ? 'No bugs match your search.' : 'No bugs reported yet.'}
-        </p>
-      )}
+      {/* Search box for bugs */}
+      <div className={styles.searchWrapper}>
+        <input
+          type="text"
+          placeholder="Search bugs..."
+          className={styles.search}
+          value={filter}
+          onChange={e => setFilter(e.target.value)}
+        />
+      </div>
 
       {filtered.map(bug => (
-        <div key={bug._id} className={styles.card}>
-          <h3 className={styles.title}>{bug.title}</h3>
-          <p className={styles.reporter}>
-            Reported by: <strong>{bug.reporter?.username || 'Unknown'}</strong>
-          </p>
-          <p className={styles.description}>{bug.description}</p>
-          <button
-            className={styles.toggleBtn}
-            onClick={() =>
-              setOpenBugId(openBugId === bug._id ? null : bug._id)
-            }
-          >
-            {openBugId === bug._id ? 'Hide Discussion' : 'Open Discussion'}
-          </button>
+        <article key={bug._id} className={styles.postCard}>
+          <header className={styles.postHeader}>
+            <h3 className={styles.title}>{bug.title}</h3>
+            <p className={styles.reporter}>
+              Reported by <strong>{bug.reporter?.username || 'Unknown'}</strong>
+            </p>
+          </header>
+
+          <section className={styles.postContent}>
+            <p>{bug.description}</p>
+          </section>
+
+          <footer className={styles.postFooter}>
+            <button
+              className={styles.toggleBtn}
+              onClick={() => setOpenBugId(openBugId === bug._id ? null : bug._id)}
+            >
+              {openBugId === bug._id ? 'Hide Discussion' : 'Open Discussion'}
+            </button>
+          </footer>
+
           {openBugId === bug._id && (
-            <DiscussionThread parentType="Bug" parentId={bug._id} />
+            <div className={styles.threadWrapper}>
+              <DiscussionThread parentType="Bug" parentId={bug._id} />
+            </div>
           )}
-        </div>
+        </article>
       ))}
     </div>
   );
