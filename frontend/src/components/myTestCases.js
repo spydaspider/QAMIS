@@ -5,7 +5,7 @@ import DiscussionThread from './discussionThread.js';
 import styles from './myBugs.module.css';
 import Loader from './loader.js';
 
-export default function BugList() {
+export default function TestCaseList() {
   const { user }         = useAuthContext();
   const { threads, dispatch } = useContext(DiscussionContext);
   const [bugs, setBugs]    = useState([]);
@@ -19,7 +19,7 @@ export default function BugList() {
     (async () => {
       try { 
         // 1) fetch all bugs
-        const bRes = await fetch('/api/logBug', {
+        const bRes = await fetch('/api/testCases', {
           headers: { Authorization: `Bearer ${user.token}` }
         });
         const bData = await bRes.json();
@@ -29,7 +29,7 @@ export default function BugList() {
 
         // 2) fetch all Bug‐threads in one go
         const tRes = await fetch(
-          '/api/discussionThread?parentType=Bug',
+          '/api/discussionThread?parentType=TestCase',
           { headers: { Authorization: `Bearer ${user.token}` } }
         );
         const tData = await tRes.json();
@@ -65,7 +65,7 @@ export default function BugList() {
           <div className={styles.header}>
             <h3 className={styles.title}>{bug.title}</h3>
             <p className={styles.meta}>
-              Reported by <strong>{bug.reporter?.username || 'Unknown'}</strong>
+              Created by <strong>{bug.author?.username || 'Unknown'}</strong>
               &nbsp;• Team: <em>{bug.team?.name || 'N/A'}</em>
             </p>
           </div>
@@ -81,7 +81,7 @@ export default function BugList() {
           {visible[bug._id] && (
             <div className={styles.threadWrapper}>
               <DiscussionThread
-                parentType="Bug"
+                parentType="TestCase"
                 parentId={bug._id}
               />
             </div>

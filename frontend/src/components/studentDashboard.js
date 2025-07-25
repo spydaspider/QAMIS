@@ -9,6 +9,7 @@ import LogBug from "../components/logBug.js";
 import ManageSprints from './sprintManagement.js';
 import TestCaseExecution from './testCaseExecution.js';
 import BugList from './myBugs.js';
+import TestCaseList from './myTestCases.js';
 
 
 const StudentDashboard = () =>{
@@ -29,6 +30,7 @@ const badges = [
     const [showSprints, setShowSprints] = useState(false);
     const [showTestCaseExecution, setShowTestCaseExecution] = useState(false);
     const [showMyBugs, setShowMyBugs] = useState(false);
+    const [showMyTestCases,setshowMyTestCases] = useState(false);
   // Handle button click to update the selected state
   const handleBadgeClick = (badge) => {
     setSelectedBadge(badge);
@@ -38,6 +40,8 @@ const badges = [
         setShowSprints(false);
         setShowTestCaseExecution(false);
         setShowMyBugs(false);
+               setshowMyTestCases(false);
+
       }
       else if(badge === 'Defect Data')
       {
@@ -45,6 +49,8 @@ const badges = [
        setShowSprints(true);
        setShowTestCaseExecution(false);
        setShowMyBugs(false);
+              setshowMyTestCases(false);
+
       }
       else if(badge === 'Test Case Execution')
       {
@@ -52,6 +58,8 @@ const badges = [
        setShowSprints(false);
        setShowTestCaseExecution(true);
        setShowMyBugs(false);
+              setshowMyTestCases(false);
+
        
       }
       else if(badge === 'Bugs Discussion')
@@ -60,8 +68,19 @@ const badges = [
        setShowSprints(false);
        setShowTestCaseExecution(false);
        setShowMyBugs(true);
+       setshowMyTestCases(false);
 
       }
+      else if(badge === "Test Case Discussion")
+        {
+            setShowLogBug(false);
+       setShowSprints(false);
+       setShowTestCaseExecution(false);
+       setShowMyBugs(false);
+       setshowMyTestCases(true);
+        }
+
+      
       /*else{
         setShowDashBoard(false);
         setShowRestaurants(false);
@@ -101,6 +120,7 @@ const badges = [
               {showSprints && <ManageSprints/>}
               {showTestCaseExecution && <TestCaseExecution/>}
               {showMyBugs && <BugList/>}
+              {showMyTestCases && <TestCaseList/>}
               
             </div>
             
