@@ -1,48 +1,114 @@
-.container {
+:root {
+  --bg-card: #fff;
+  --bg-thread: #f9f9f9;
+  --bg-comment: #fff;
+  --border: #ddd;
+  --border-light: #eee;
+  --shadow: 0 2px 6px rgba(0,0,0,0.05);
+  --primary: #0077cc;
+  --primary-light: #3399ee;
+  --text-muted: #777;
+  --text-normal: #333;
+}
+
+.feed {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding: 20px;
-  max-width: 600px;
-  margin: 0 auto;
+  gap: 1.5rem;
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
   grid-column: 3/-1;
   overflow-y: auto;
+  
+  
 }
 
-.searchWrapper {
-  width: 100%;
-  display: flex;
-  justify-content: center;
+.bugCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 1.25rem;
+  border-radius: 1rem;
+  box-shadow: var(--shadow);
 }
 
-.search {
-  width: 100%;
-  max-width: 400px;
-  padding: 8px 12px;
-  font-size: 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
+.header {
+  margin-bottom: 0.75rem;
 }
 
-.postCard {
-  background: var(--color-card-bg);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+.title {
+  margin: 0;
+  font-size: 1.25rem;
 }
 
-.postHeader { margin-bottom: 12px; }
-.title { font-size: 1.4rem; margin: 0; color: var(--color-primary); }
-.reporter { font-size: 0.85rem; color: var(--color-text-secondary); }
+.meta {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
 
-.postContent { margin-bottom: 12px; color: var(--color-text); }
-.postFooter { display: flex; justify-content: flex-end; }
+.description {
+  margin: 0.75rem 0;
+  color: var(--text-normal);
+}
 
-.toggleBtn { /* same as before */ }
+.toggleBtn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0;
+}
 
 .threadWrapper {
-  margin-top: 16px;
-  border-top: 1px solid var(--color-border);
-  padding-top: 16px;
+  margin-top: 1rem;
+  border-top: 1px solid var(--border-light);
+  padding-top: 1rem;
+}
+/* Add these below your existing rules */
+
+.commentCard {
+  background: #fff;                  /* white card background */
+  border: 1px solid #ddd;            /* light border */
+  border-radius: 0.5rem;             /* rounded corners */
+  padding: 0.75rem 1rem;             /* breathing room */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom: 0.75rem;
+}
+
+/* Make the author stand out at top of each card */
+.commentHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+/* Author styling */
+.commentHeader .author {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+/* Timestamp, smaller and muted */
+.commentHeader .date {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+/* Reply button stays subtle on the right */
+.commentHeader .replyBtn {
+  background: none;
+  border: none;
+  font-size: 0.8rem;
+  color: #0077cc;
+  cursor: pointer;
+}
+
+/* The comment body sits nicely below */
+.commentBody {
+  margin: 0.5rem 0;
+  color: #444;
+  line-height: 1.4;
 }

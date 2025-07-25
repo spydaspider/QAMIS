@@ -1,35 +1,48 @@
+// controllers/discussionThread.js
+
 const mongoose = require('mongoose');
 const DiscussionThread = require('../models/discussionThread');
 
-// Utility for sending standardized errors
+// Utility for standardized errors
 const sendError = (res, status, message) =>
   res.status(status).json({ success: false, message });
 
-// Create a new discussion thread
+/**
+ * POST   /api/discussionThread
+ * Create a new thread for a given parent.
+ */
 const createThread = async (req, res) => {
   const { parentType, parentId } = req.body;
 
   if (!req.user) return sendError(res, 401, 'Authentication required');
   if (!['Bug', 'TestCase'].includes(parentType)) {
-    return sendError(res, 400, 'parentType must be either "Bug" or "TestCase"');
+    return sendError(res, 400, 'parentType must be "Bug" or "TestCase"');
   }
   if (!mongoose.Types.ObjectId.isValid(parentId)) {
     return sendError(res, 400, 'parentId is not a valid ObjectId');
   }
 
   try {
-    const thread = await DiscussionThread.create({
+    let thread = await DiscussionThread.create({
       parentType,
       parentId,
       author: req.user._id
     });
+    // populate right away
+    thread = await DiscussionThread.findById(thread._id)
+      .populate('author', 'name email')
+      .populate('comments.author', 'name email')
+      .populate('comments.replies.author', 'name email');
     res.status(201).json({ success: true, thread });
   } catch (err) {
     sendError(res, 500, err.message);
   }
 };
 
-// Add a top-level comment
+/**
+ * POST   /api/discussionThread/:threadId/comments
+ * Add a top‑level comment.
+ */
 const addComment = async (req, res) => {
   const { threadId } = req.params;
   const { content } = req.body;
@@ -49,9 +62,10 @@ const addComment = async (req, res) => {
     thread.comments.push({ author: req.user._id, content });
     await thread.save();
 
-    const idx = thread.comments.length - 1;
-    await thread.populate({ path: `comments.${idx}.author`, select: 'name email' });
-    const newComment = thread.comments[idx];
+    // re-fetch the last comment with populated author
+    const populated = await DiscussionThread.findById(threadId)
+      .populate('comments.author', 'name email');
+    const newComment = populated.comments.pop();
 
     res.status(201).json({ success: true, comment: newComment });
   } catch (err) {
@@ -59,7 +73,10 @@ const addComment = async (req, res) => {
   }
 };
 
-// Helper: recursively find a comment subdocument by id
+/**
+ * POST   /api/discussionThread/:threadId/comments/:commentId/reply
+ * Reply to a comment (recursively).
+ */
 function findCommentRecursively(docs, id) {
   for (let doc of docs) {
     if (doc._id.toString() === id) return doc;
@@ -73,42 +90,40 @@ const replyToComment = async (req, res) => {
   const { threadId, commentId } = req.params;
   const { content } = req.body;
 
-  // 1) Validate user, IDs, and content
   if (!req.user) return sendError(res, 401, 'Authentication required');
-  if (![threadId, commentId].every(id => mongoose.Types.ObjectId.isValid(id)))
+  if (![threadId, commentId].every(id => mongoose.Types.ObjectId.isValid(id))) {
     return sendError(res, 400, 'Invalid IDs');
+  }
   if (!content) return sendError(res, 400, 'Content is required');
 
   try {
-    // 2) Load the thread
     const thread = await DiscussionThread.findById(threadId);
     if (!thread) return sendError(res, 404, 'Thread not found');
 
-    // 3) Locate the parent comment (at any depth)
     const parent = findCommentRecursively(thread.comments, commentId);
     if (!parent) return sendError(res, 404, 'Comment not found');
 
-    // 4) Append the reply and save
     parent.replies.push({ author: req.user._id, content });
     await thread.save();
 
-    // 5) Reload/populate to grab the nested author details
+    // re-fetch & populate entire tree
     const populated = await DiscussionThread.findById(threadId)
       .populate('comments.author', 'name email')
       .populate('comments.replies.author', 'name email');
 
-    // 6) Re‑find the freshly populated parent and its last reply
     const freshParent = findCommentRecursively(populated.comments, commentId);
     const newReply = freshParent.replies[freshParent.replies.length - 1];
 
-    // 7) Return it
     res.status(201).json({ success: true, reply: newReply });
   } catch (err) {
     sendError(res, 500, err.message);
   }
 };
 
-// Delete an entire discussion thread
+/**
+ * DELETE /api/discussionThread/:threadId
+ * Delete an entire thread (only by its author).
+ */
 const deleteThread = async (req, res) => {
   const { threadId } = req.params;
 
@@ -123,15 +138,17 @@ const deleteThread = async (req, res) => {
     if (thread.author.toString() !== req.user._id.toString()) {
       return sendError(res, 403, 'Forbidden: cannot delete this thread');
     }
-
-    await DiscussionThread.findByIdAndDelete(threadId);
+    await thread.deleteOne();
     res.status(204).end();
   } catch (err) {
     sendError(res, 500, err.message);
   }
 };
 
-// Fetch a full thread (with authors populated)
+/**
+ * GET    /api/discussionThread/:threadId
+ * Fetch a single thread by its _id.
+ */
 const getThread = async (req, res) => {
   const { threadId } = req.params;
 
@@ -142,12 +159,83 @@ const getThread = async (req, res) => {
   try {
     const thread = await DiscussionThread.findById(threadId)
       .populate('author', 'name email')
-      .populate('comments.author', 'name email')
-      .populate('comments.replies.author', 'name email');
+      .populate({
+        path: 'comments.author',
+        select: 'name email'
+      })
+      .populate({
+        path: 'comments.replies',
+        populate: {
+          path: 'author',
+          select: 'name email'
+        }
+      })
+      .populate({
+        path: 'comments.replies.replies',
+        populate: {
+          path: 'author',
+          select: 'name email'
+        }
+      });
 
     if (!thread) return sendError(res, 404, 'Thread not found');
-
     res.json({ success: true, thread });
+  } catch (err) {
+    sendError(res, 500, err.message);
+  }
+};
+
+
+/**
+ * GET    /api/discussionThread
+ * Query‐style fetch: ?parentType=Bug[&parentId=<id>]
+ * - If only parentType, returns all threads of that type.
+ * - If both parentType & parentId, returns single thread or 404.
+ */
+const listThreads = async (req, res) => {
+  const { parentType, parentId } = req.query;
+  if (!['Bug', 'TestCase'].includes(parentType)) {
+    return sendError(res, 400, 'parentType query required');
+  }
+
+  try {
+    const filter = { parentType };
+    if (parentId) {
+      if (!mongoose.Types.ObjectId.isValid(parentId)) {
+        return sendError(res, 400, 'parentId invalid');
+      }
+      filter.parentId = parentId;
+    }
+
+  const threads = await DiscussionThread.find(filter)
+  .populate('author', 'name email')
+  .populate({
+    path: 'comments.author',
+    select: 'name email'
+  })
+  .populate({
+    path: 'comments.replies',
+    populate: {
+      path: 'author',
+      select: 'name email'
+    }
+  })
+  .populate({
+    path: 'comments.replies.replies',
+    populate: {
+      path: 'author',
+      select: 'name email'
+    }
+  });
+
+    if (parentId) {
+      // return single or 404
+      if (!threads.length) return sendError(res, 404, 'Thread not found');
+      return res.json({ success: true, thread: threads[0] });
+    }
+
+    // return array
+    res.json({ success: true, threads });
   } catch (err) {
     sendError(res, 500, err.message);
   }
@@ -158,5 +246,6 @@ module.exports = {
   addComment,
   replyToComment,
   deleteThread,
-  getThread
+  getThread,
+  listThreads
 };

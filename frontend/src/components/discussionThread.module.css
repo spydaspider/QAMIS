@@ -109,3 +109,84 @@
 .button:hover {
   background: var(--color-primary-dark);
 }
+.replyCard {
+  margin-top: 0.5rem;
+}
+
+.commentCard {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.commentHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.author {
+  font-weight: 600;
+  color: #222;
+  font-size: 0.95rem;
+}
+
+.date {
+  font-size: 0.75rem;
+  color: #888;
+  margin-left: auto;
+  margin-right: 1rem;
+}
+
+.replyBtn {
+  background: none;
+  border: none;
+  font-size: 0.8rem;
+  color: #0077cc;
+  cursor: pointer;
+}
+
+.commentBody {
+  color: #333;
+  line-height: 1.4;
+}
+
+.inlineForm {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.4rem;
+}
+
+.buttonSmall {
+  align-self: flex-start;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  background: var(--primary-light);
+  color: #fff;
+  border: none;
+  border-radius: 0.4rem;
+  cursor: pointer;
+}
+
+.button {
+  margin-top: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 0.4rem;
+  cursor: pointer;
+}

@@ -1,32 +1,22 @@
 const express = require('express');
-const router = express.Router();
-const auth = require('../middleware/auth.js');
-const {
-  createThread,
-  addComment,
-  replyToComment,
-  deleteThread,
-  getThread
-} = require('../controllers/discussionThread.js');
+const router  = express.Router();
+const auth    = require('../middleware/auth');
+const ctrl    = require('../controllers/discussionThread');
 
-// Create a new discussion thread
-// POST   /api/discussionThread
+// All routes require auth
 router.use(auth);
-router.post('/', createThread);
 
-// Add a top-level comment to a thread
-// POST   /api/discussionThread/:threadId/comments
-router.post('/:threadId/comments', addComment);
+// List or fetch-by-parent
+// GET /api/discussionThread?parentType=Bug[&parentId=<id>]
+router.get('/', ctrl.listThreads);
 
-// Reply to an existing comment in a thread
-// POST   /api/discussionThread/:threadId/comments/:commentId/reply
-router.post('/:threadId/comments/:commentId/reply', replyToComment);
+// Get by threadId
+router.get('/:threadId', ctrl.getThread);
 
-// Fetch a full discussion thread (with comments & replies)
-// GET    /api/discussionThread/:threadId
-router.get('/:threadId', getThread);
-// DELETE /api/discussionThread/:threadId
-router.delete('/:threadId', deleteThread);
-
+// Create, comment, reply, delete
+router.post('/', ctrl.createThread);
+router.post('/:threadId/comments', ctrl.addComment);
+router.post('/:threadId/comments/:commentId/reply', ctrl.replyToComment);
+router.delete('/:threadId', ctrl.deleteThread);
 
 module.exports = router;
