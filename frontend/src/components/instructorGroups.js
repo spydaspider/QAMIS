@@ -204,10 +204,10 @@ const InstructorGroups = () => {
         />
       </div>
 
-      {groups.map(group => {
-        const expObj = typeof group.experiment === 'object'
-          ? group.experiment
-          : experiments.find(e => e._id === group.experiment) || {};
+      {Array.isArray(groups) && groups.map(group => {
+       const expObj = typeof group.experiment === 'object'
+  ? group.experiment
+  : experiments.find(e => e?._id === group.experiment) || null;
 
         return (
           <div
@@ -217,14 +217,14 @@ const InstructorGroups = () => {
           >
             <div className={styles.header}>
               <h3 className={styles.groupName}>{group.name}</h3>
-              <div className={styles.experimentLabel}>
-                <strong>{expObj.title || 'No Exp'}</strong>
-                {expObj.methodology && (
-                  <span className={styles.methodology}>
-                    {` (${expObj.methodology})`}
-                  </span>
-                )}
-              </div>
+             <div className={styles.experimentLabel}>
+  <strong>{expObj?.title || 'No Exp'}</strong>
+  {expObj?.methodology && (
+    <span className={styles.methodology}>
+      {` (${expObj.methodology})`}
+    </span>
+  )}
+</div>
               <button
                 className={styles.removeGroupBtn}
                 onClick={e => { e.stopPropagation(); handleRemoveGroup(group._id); }}
