@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import styles from './experiments.module.css';
 import { useExperimentsContext } from '../hooks/useExperimentsContext';
 import { useAuthContext } from '../hooks/useAuthContext';
+import Loader from './loader';
 
 const ManageExperiments = () => {
   const { experiments, dispatch } = useExperimentsContext();
@@ -16,6 +17,7 @@ const ManageExperiments = () => {
   });
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // Helper to render “July 1, 2025” style
   const formatDate = iso => 
@@ -40,6 +42,9 @@ const ManageExperiments = () => {
         }
       } catch {
         setError('Failed to fetch experiments');
+      }
+      finally{
+        setLoading(false);
       }
     };
     if (user) fetchExperiments();
@@ -127,7 +132,7 @@ const ManageExperiments = () => {
     setForm({ title: '', description: '', methodology: '', startDate: '', endDate: '' });
     setError(null);
   };
-
+    if(loading) return <Loader/>;
   return (
     <div className={styles.container}>
       {error && <div className={styles.error}>{error}</div>}
@@ -194,14 +199,17 @@ const ManageExperiments = () => {
             onChange={handleChange}
             required
           />
-          <input
+          <select
             className={styles.input}
             name="methodology"
-            placeholder="Methodology"
             value={form.methodology}
             onChange={handleChange}
             required
-          />
+          >
+            <option value="" disabled>Select Methodology</option>
+            <option value="Agile Methodology">Agile Methodology</option>
+            <option value="Waterfall Methodology">Waterfall Methodology</option>
+          </select>
           <input
             className={styles.input}
             type="date"

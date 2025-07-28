@@ -1,5 +1,6 @@
 const express = require('express');
-const router = express.Router();
+// Enable mergeParams to inherit :teamId from parent mount
+const router = express.Router({ mergeParams: true });
 const {
   createMetrics,
   getLatestMetrics,
@@ -7,20 +8,22 @@ const {
   upsertTodayMetrics
 } = require('../controllers/performanceMetrics.js');
 
-// Record a new snapshot (optional manual create)
-// POST   /api/metrics
+// All routes are relative to /api/teams/:teamId/metrics
+
+// 1. Record a new snapshot (manual or on-demand)
+//    POST   /api/teams/:teamId/metrics
 router.post('/', createMetrics);
 
-// Upsert today’s snapshot for a team (auto-calc)
-// PUT    /api/metrics/:teamId/upsert-today
-router.put('/:teamId/upsert-today', upsertTodayMetrics);
+// 2. Upsert today’s snapshot for a team
+//    PUT    /api/teams/:teamId/metrics
+router.put('/', upsertTodayMetrics);
 
-// Get the latest metrics for a team
-// GET    /api/metrics/:teamId/latest
-router.get('/:teamId/latest', getLatestMetrics);
+// 3. Get the latest metrics for a team
+//    GET    /api/teams/:teamId/metrics/latest
+router.get('/latest', getLatestMetrics);
 
-// Get metrics history for a team (optional: from, to, limit)
-// GET    /api/metrics/:teamId/history
-router.get('/:teamId/history', getMetricsHistory);
+// 4. Get metrics history for a team (optional: from, to, limit)
+//    GET    /api/teams/:teamId/metrics/history
+router.get('/history', getMetricsHistory);
 
 module.exports = router;

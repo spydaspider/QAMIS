@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTestCasesContext } from '../hooks/useTestCasesContext';
 import { useAuthContext } from '../hooks/useAuthContext';
 import styles from './testCase.module.css';
+import Loader from './loader';
 
 const ManageTestCases = () => {
   const { testCases = [], dispatch } = useTestCasesContext();
@@ -16,6 +17,7 @@ const ManageTestCases = () => {
   });
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // Fetch existing test cases
   useEffect(() => {
@@ -30,6 +32,9 @@ const ManageTestCases = () => {
         else setError(json.error);
       } catch {
         setError('Failed to fetch test cases');
+      }
+      finally{
+        setLoading(false);
       }
     })();
   }, [user, dispatch]);
@@ -151,7 +156,7 @@ const ManageTestCases = () => {
     setForm({ title: '', description: '', assignedTeams: [], steps: [] });
     setError(null);
   };
-
+  if(loading) return <Loader/>
   return (
     <div className={styles.container}>
       {error && <div className={styles.error}>{error}</div>}

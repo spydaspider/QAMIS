@@ -27,7 +27,7 @@ app.use('/api/teams', teams);
 app.use('/api/testCases', testCases);
 app.use('/api/logBug',logBug);
 app.use('/api/discussionThread', discussionThread);
-app.use('/api/performanceMetrics', performanceMetrics);
+app.use('/api/teams/:teamId/metrics', performanceMetrics);
 app.use('/api/sprints', sprints);
  mongoose.connect(process.env.MONGO_URI).then(()=>{
     app.listen(PORT,()=>{    

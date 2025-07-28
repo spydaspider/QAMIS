@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
+const cron = require('node-cron');
 const PerformanceMetrics = require('../models/performanceMetrics');
+const Team = require('../models/teams');  // ensure correct filename
 const Bug = require('../models/logBug');
 const TestCase = require('../models/testCase');
 
@@ -7,15 +9,17 @@ const TestCase = require('../models/testCase');
 const sendError = (res, status, message) =>
   res.status(status).json({ success: false, message });
 
-// 1. Record a new metrics snapshot (auto-computed)
+// 1. Record a new metrics snapshot (auto-computed) for a team
+//    Route: POST /api/teams/:teamId/metrics
 const createMetrics = async (req, res) => {
-  const { team } = req.body;
-  if (!mongoose.Types.ObjectId.isValid(team)) {
-    return res.status(400).json({ success: false, message: 'Invalid team ID' });
+  const { teamId } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(teamId)) {
+    return sendError(res, 400, 'Invalid team ID');
   }
 
   try {
-    const teamObjectId = new mongoose.Types.ObjectId(team);
+    // use `new` when constructing ObjectId
+    const teamObjectId = new mongoose.Types.ObjectId(teamId);
 
     // 1. Total bugs logged
     const bugsLogged = await Bug.countDocuments({ team: teamObjectId });
@@ -55,19 +59,17 @@ const createMetrics = async (req, res) => {
       }
     ]);
 
-    let testCasesExecuted = 0,
-      passCount = 0;
+    let testCasesExecuted = 0;
+    let passCount = 0;
     execStats.forEach((s) => {
       testCasesExecuted += s.count;
       if (s._id === 'pass') passCount = s.count;
     });
-    const testPassRate = testCasesExecuted
-      ? passCount / testCasesExecuted
-      : 0;
+    const testPassRate = testCasesExecuted ? passCount / testCasesExecuted : 0;
 
     // 5. Save the snapshot
     const metrics = new PerformanceMetrics({
-      team,
+      team: teamId,
       bugsLogged,
       bugsResolvedCount,
       avgResolutionTimeHours,
@@ -79,11 +81,12 @@ const createMetrics = async (req, res) => {
     return res.status(201).json({ success: true, metrics });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ success: false, message: err.message });
+    return sendError(res, 500, err.message);
   }
 };
 
 // 2. Fetch the latest metrics for a given team
+//    Route: GET /api/teams/:teamId/metrics/latest
 const getLatestMetrics = async (req, res) => {
   const { teamId } = req.params;
   if (!mongoose.Types.ObjectId.isValid(teamId)) {
@@ -91,15 +94,17 @@ const getLatestMetrics = async (req, res) => {
   }
 
   try {
-    const metrics = await PerformanceMetrics.findOne({ team: teamId }).sort({ recordedAt: -1 });
+    const metrics = await PerformanceMetrics.findOne({ team: teamId })
+      .sort({ recordedAt: -1 });
     if (!metrics) return sendError(res, 404, 'No metrics found for this team');
-    res.json({ success: true, metrics });
+    return res.json({ success: true, metrics });
   } catch (err) {
-    sendError(res, 500, err.message);
+    return sendError(res, 500, err.message);
   }
 };
 
 // 3. Fetch a history of metrics for a team (optionally within a date range)
+//    Route: GET /api/teams/:teamId/metrics?from=YYYY-MM-DD&to=YYYY-MM-DD&limit=50
 const getMetricsHistory = async (req, res) => {
   const { teamId } = req.params;
   const { from, to, limit = 50 } = req.query;
@@ -119,16 +124,25 @@ const getMetricsHistory = async (req, res) => {
     const history = await PerformanceMetrics.find(filter)
       .sort({ recordedAt: -1 })
       .limit(parseInt(limit, 10));
-    res.json({ success: true, history });
+    return res.json({ success: true, history });
   } catch (err) {
-    sendError(res, 500, err.message);
+    return sendError(res, 500, err.message);
   }
 };
 
 // 4. Upsert (create or update) today's metrics snapshot for a team
+//    Route: PUT /api/teams/:teamId/metrics
 const upsertTodayMetrics = async (req, res) => {
-  const { team, bugCount, bugsResolvedCount, avgResolutionTime, testCasesExecuted, testPassRate } = req.body;
-  if (!mongoose.Types.ObjectId.isValid(team)) {
+  const { teamId } = req.params;
+  const {
+    bugCount,
+    bugsResolvedCount,
+    avgResolutionTime,
+    testCasesExecuted,
+    testPassRate
+  } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(teamId)) {
     return sendError(res, 400, 'Invalid team ID');
   }
 
@@ -139,9 +153,9 @@ const upsertTodayMetrics = async (req, res) => {
 
   try {
     const metrics = await PerformanceMetrics.findOneAndUpdate(
-      { team, recordedAt: { $gte: todayStart, $lt: todayEnd } },
+      { team: teamId, recordedAt: { $gte: todayStart, $lt: todayEnd } },
       {
-        team,
+        team: teamId,
         bugsLogged: bugCount,
         bugsResolvedCount,
         avgResolutionTimeHours: avgResolutionTime,
@@ -152,11 +166,25 @@ const upsertTodayMetrics = async (req, res) => {
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
-    res.json({ success: true, metrics });
+    return res.json({ success: true, metrics });
   } catch (err) {
-    sendError(res, 500, err.message);
+    return sendError(res, 500, err.message);
   }
 };
+
+// 5. Schedule nightly snapshot at 00:00 server time
+cron.schedule('0 0 * * *', async () => {
+  try {
+    const teams = await Team.find({}, '_id');
+    for (const { _id } of teams) {
+      // internal call without HTTP
+      await createMetrics({ params: { teamId: _id.toString() } }, { status: () => ({ json: () => {} }) });
+    }
+    console.log('Nightly metrics snapshot created for all teams');
+  } catch (error) {
+    console.error('Nightly metrics error:', error);
+  }
+});
 
 module.exports = {
   createMetrics,

@@ -13,7 +13,7 @@ const ExperimentSchema = new Schema({
   },
   methodology: {
     type: String,
-    enum: ['Waterfall', 'Agile'],
+    enum: ['Waterfall Methodology', 'Agile Methodology'],
     required: true
   },
   startDate: {

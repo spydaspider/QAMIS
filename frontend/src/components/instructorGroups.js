@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import styles from './instructorGroups.module.css';
 import { useGroupsContext } from '../hooks/useGroupsContext';
 import { useAuthContext } from '../hooks/useAuthContext';
+import Loader from './loader';
 
 const InstructorGroups = () => {
   const { groups, dispatch } = useGroupsContext();
@@ -15,7 +16,7 @@ const InstructorGroups = () => {
   const [studentSearchTerm, setStudentSearchTerm] = useState('');
   const [students, setStudents] = useState([]);
   const [error, setError] = useState(null);
-
+  const [loading, setLoading] = useState(true);
   // fetch experiments
   useEffect(() => {
     const fetchExperiments = async () => {
@@ -47,6 +48,9 @@ const InstructorGroups = () => {
         } else setError(json.error);
       } catch {
         setError('Failed to fetch groups');
+      }
+      finally{
+        setLoading(false);
       }
     };
     if (user) fetchGroups();
@@ -166,7 +170,7 @@ const InstructorGroups = () => {
       .filter(s => !inGroupIds.has(s._id))
       .filter(s => s.username.toLowerCase().includes(studentSearchTerm.toLowerCase()));
   };
-
+  if(loading) return <Loader/>;
   return (
     <div className={styles.container}>
       {error && <div className={styles.error}>{error}</div>}
@@ -208,6 +212,7 @@ const InstructorGroups = () => {
        const expObj = typeof group.experiment === 'object'
   ? group.experiment
   : experiments.find(e => e?._id === group.experiment) || null;
+       
 
         return (
           <div
