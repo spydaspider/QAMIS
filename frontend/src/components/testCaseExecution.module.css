@@ -14,6 +14,10 @@
   display: grid;
   gap: 1.5rem;
 }
+.gridText{
+  grid-column: 3/-1;
+  
+}
 .card {
   border: 1px solid var(--border);
   border-radius: 8px;

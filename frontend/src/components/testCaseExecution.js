@@ -16,7 +16,8 @@ const TestCaseExecution = () => {
   const [execForm, setExecForm] = useState({ status: 'not run', actualResult: '', comments: '' });
   const [editingExec, setEditingExec] = useState({ caseId: null, idx: null });
   const [loading, setLoading] = useState(true);
-
+  const [studentNoTeam, setStudentNoTeam] = useState(false);
+   let studentHasTeamCounter = 0;
   // Fetch teams the user belongs to and auto-select
   useEffect(() => {
     if (!user) return;
@@ -24,11 +25,32 @@ const TestCaseExecution = () => {
       try {
         const res = await fetch('/api/teams', { headers: { Authorization: `Bearer ${user.token}` } });
         const json = await res.json();
+    
         if (res.ok && Array.isArray(json.data) && json.data.length) {
-          setTeamsList(json.data);
-          setSelectedTeam(json.data[0]._id);
+
+           for(let i = 0; i < json.data.length; i++)
+           {
+            for(let j = 0; j < json.data[i].students.length; j++)
+            {
+             if(json.data[i].students[j]._id === user.userId)
+             {
+                       setSelectedTeam(json.data[i]._id);
+                       studentHasTeamCounter = 1;
+             } 
+             
+            }
+            
+           }
+          if(studentHasTeamCounter === 0)
+          {
+            setLoading(false);
+            setStudentNoTeam(true);
+          }
+        
         }
-      } catch {}
+      } catch {
+        setLoading(false);
+      }
     })();
   }, [user]);
 
@@ -135,6 +157,7 @@ const TestCaseExecution = () => {
     setEditingExec({ caseId: tcId, idx });
   };
   if(loading) return <Loader/>;
+  if(studentNoTeam) return <h1 className={styles.gridText}>You are not assigned to any group, speak to instructor.</h1>
   return (
     <div className={styles.container}>
       {error && <div className={styles.error}>{error}</div>}
