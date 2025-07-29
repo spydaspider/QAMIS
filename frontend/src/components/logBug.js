@@ -20,22 +20,42 @@ const LogBug = () => {
   const [teamId, setTeamId] = useState('');
   const [teamName, setTeamName] = useState('');
   const [loading, setLoading] = useState(true);
+  const [studentNoTeam, setStudentNoTeam] = useState(false);
 
   // Fetch teams and bugs on mount
   useEffect(() => {
     if (!user) return;
     const userId = JSON.parse(localStorage.getItem('user')).userId;
-
+    const studentHasTeamCounter = 0;
     // fetch all teams and find the one containing this student
     fetch('/api/teams', { headers: { Authorization: `Bearer ${user.token}` } })
       .then(res => res.json())
       .then(data => {
         const teams = data.data || [];
+        
         const team = teams.find(t => Array.isArray(t.students) && t.students.some(s => s._id === userId));
         if (team) {
           setTeamId(team._id);
           setTeamName(team.name);
         }
+        for(let i = 0; i < teams.length; i++)
+           {
+            for(let j = 0; j < teams[i].students.length; j++)
+            {
+             if(teams[i].students[j]._id === userId)
+             {
+                       studentHasTeamCounter = 1;
+             } 
+             
+            }
+            
+           }
+          if(studentHasTeamCounter === 0)
+          {
+            setLoading(false);
+            setStudentNoTeam(true);
+          }
+        
       })
       .catch(() => {});
 
@@ -169,6 +189,7 @@ const LogBug = () => {
     });
     setError(null);
   };
+    if(studentNoTeam) return <h1 className={styles.gridText}>You are not assigned to a team yet. Speak to instructor</h1>
     if(loading) return <Loader/>
   return (
     <div className={styles.container}>

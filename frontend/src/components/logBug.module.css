@@ -114,6 +114,10 @@
   align-items: center;
   margin-bottom: 4px;
 }
+.gridText{
+  grid-column: 3/-1;
+  
+}
 
 .stepInput {
   flex: 1;

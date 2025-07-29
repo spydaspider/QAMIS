@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuthContext } from '../hooks/useAuthContext';
 import { useSprintContext } from '../hooks/useSprintContext';
 import styles from './sprintManagement.module.css';
+import Loader from './loader';
 
 const ManageSprints = () => {
   const { sprints = [], dispatch } = useSprintContext();
@@ -11,11 +12,14 @@ const ManageSprints = () => {
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState(null);
   const [teamId, setTeamId] = useState('');
+  const [studentNoTeam, setStudentNoTeam] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Fetch teamId once when user is available
   useEffect(() => {
     if (!user) return;
     const { userId } = JSON.parse(localStorage.getItem('user'));
+    const studentHasTeamCounter = 0;
     const fetchTeam = async () => {
       try {
         const res = await fetch('/api/teams', { headers: { Authorization: `Bearer ${user.token}` } });
@@ -23,6 +27,24 @@ const ManageSprints = () => {
         const teams = data.data || [];
         const team = teams.find(t => Array.isArray(t.students) && t.students.some(s => s._id === userId));
         if (team) setTeamId(team._id);
+
+        for(let i = 0; i < teams.length; i++)
+           {
+            for(let j = 0; j < teams[i].students.length; j++)
+            {
+             if(teams[i].students[j]._id === userId)
+             {
+                       studentHasTeamCounter = 1;
+             } 
+             
+            }
+            
+           }
+          if(studentHasTeamCounter === 0)
+          {
+            setLoading(false);
+            setStudentNoTeam(true);
+          }
       } catch (err) {
         console.error(err);
       }
@@ -40,6 +62,9 @@ const ManageSprints = () => {
         dispatch({ type: 'SET_SPRINTS', payload: data });
       } catch (err) {
         setError(err.message);
+      }
+      finally{
+        setLoading(false);
       }
     };
     fetchSprints();
@@ -117,7 +142,8 @@ const ManageSprints = () => {
       setError(err.message);
     }
   };
-
+  if(studentNoTeam) return <h1 className="gridText">You are not assigned to any team. Speak to an instructor</h1>
+  if(loading) return <Loader/>;
   return (
     <div className={styles.container}>
       {error && <div className={styles.error}>{error}</div>}

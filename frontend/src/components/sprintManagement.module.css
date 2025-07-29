@@ -78,6 +78,10 @@
   flex-direction: column;
   gap: 12px;
 }
+.gridText{
+  grid-column: 3/-1;
+  
+}
 
 .input {
   padding: 8px;
