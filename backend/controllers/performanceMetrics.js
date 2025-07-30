@@ -19,16 +19,40 @@ const createMetrics = async (req, res) => {
 
   try {
     const teamObjectId = new mongoose.Types.ObjectId(teamId);
+    
     // Total bugs logged
     const bugsLogged = await Bug.countDocuments({ team: teamObjectId });
-    // Bugs resolved
-    const bugsResolvedCount = await Bug.countDocuments({ team: teamObjectId, currentStatus: 'closed' });
-    // Avg resolution time (hours)
+
+    // Bugs resolved: count both “closed” and “resolved”
+    const resolvedStatuses = ['closed', 'resolved'];
+    const bugsResolvedCount = await Bug.countDocuments({
+      team: teamObjectId,
+      currentStatus: { $in: resolvedStatuses }
+    });
+
+    // Avg resolution time (hours) across all resolved bugs
     const [{ avg: avgResolutionTimeHours = 0 } = {}] = await Bug.aggregate([
-      { $match: { team: teamObjectId, currentStatus: 'closed' } },
-      { $project: { dtHours: { $divide: [ { $subtract: ['$updatedAt', '$createdAt'] }, 1000*60*60 ] } } },
+      {
+        $match: {
+          team: teamObjectId,
+          currentStatus: { $in: resolvedStatuses },
+          createdAt: { $exists: true },
+          updatedAt: { $exists: true }
+        }
+      },
+      {
+        $project: {
+          dtHours: {
+            $divide: [
+              { $subtract: ['$updatedAt', '$createdAt'] },
+              1000 * 60 * 60
+            ]
+          }
+        }
+      },
       { $group: { _id: null, avg: { $avg: '$dtHours' } } }
     ]);
+
     // Test executions & pass rate
     const execStats = await TestCase.aggregate([
       { $unwind: '$executions' },
@@ -36,8 +60,12 @@ const createMetrics = async (req, res) => {
       { $group: { _id: '$executions.status', count: { $sum: 1 } } }
     ]);
     let testCasesExecuted = 0, passCount = 0;
-    execStats.forEach(s => { testCasesExecuted += s.count; if (s._id === 'pass') passCount = s.count; });
+    execStats.forEach(s => {
+      testCasesExecuted += s.count;
+      if (s._id === 'pass') passCount = s.count;
+    });
     const testPassRate = testCasesExecuted ? passCount / testCasesExecuted : 0;
+
     // Create and save, defectDensity computed in pre-save hook
     const metrics = new PerformanceMetrics({
       team: teamId,
@@ -48,6 +76,7 @@ const createMetrics = async (req, res) => {
       testPassRate
     });
     await metrics.save();
+
     return res.status(201).json({ success: true, metrics });
   } catch (err) {
     console.error(err);
@@ -75,12 +104,14 @@ const getMetricsHistory = async (req, res) => {
   const { teamId } = req.params;
   const { from, to, limit = 50 } = req.query;
   if (!mongoose.Types.ObjectId.isValid(teamId)) return sendError(res, 400, 'Invalid team ID');
+
   const filter = { team: teamId };
   if (from || to) {
     filter.recordedAt = {};
     if (from) filter.recordedAt.$gte = new Date(from);
     if (to) filter.recordedAt.$lte = new Date(to);
   }
+
   try {
     const history = await PerformanceMetrics.find(filter)
       .sort({ recordedAt: -1 })
@@ -97,10 +128,15 @@ const upsertTodayMetrics = async (req, res) => {
   const { teamId } = req.params;
   let { bugCount, bugsResolvedCount, avgResolutionTime, testCasesExecuted, testPassRate } = req.body;
   if (!mongoose.Types.ObjectId.isValid(teamId)) return sendError(res, 400, 'Invalid team ID');
-  const todayStart = new Date(); todayStart.setUTCHours(0,0,0,0);
-  const todayEnd   = new Date(todayStart); todayEnd.setUTCDate(todayEnd.getUTCDate()+1);
+
+  const todayStart = new Date();
+  todayStart.setUTCHours(0,0,0,0);
+  const todayEnd = new Date(todayStart);
+  todayEnd.setUTCDate(todayEnd.getUTCDate() + 1);
+
   // compute defectDensity manually since update bypasses hooks
   const defectDensity = testCasesExecuted ? (bugCount / testCasesExecuted) * 1000 : 0;
+
   try {
     const metrics = await PerformanceMetrics.findOneAndUpdate(
       { team: teamId, recordedAt: { $gte: todayStart, $lt: todayEnd } },
@@ -127,7 +163,10 @@ cron.schedule('0 0 * * *', async () => {
   try {
     const teams = await Team.find({}, '_id');
     for (const { _id } of teams) {
-      await createMetrics({ params: { teamId: _id.toString() } }, { status: ()=>({ json: ()=>{} }) });
+      await createMetrics(
+        { params: { teamId: _id.toString() } },
+        { status: () => ({ json: () => {} }) }
+      );
     }
     console.log('Nightly metrics done');
   } catch (error) {
