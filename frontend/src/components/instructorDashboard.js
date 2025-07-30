@@ -13,6 +13,7 @@ import InstructorControlPanel from './instructorMetricsView';
 import InstructorGroups from './instructorGroups';
 import ExperimentManagement from './experiments';
 import ManageTestCases from './testCase';
+import PerformanceMetrics from './performanceMetrics';
 
 const InstructorDashboard = () =>{
    
@@ -23,7 +24,7 @@ const badges = [
   { name: 'Groups',                icon: groupsIcon    },
   { name: 'QAReports',             icon: reportsIcon        },
   { name: 'LeaderBoard',           icon: leaderBoardIcon },
-  { name: 'Submissions',           icon: submissionsIcon},
+  { name: 'Performance Metrics',           icon: submissionsIcon},
   { name: 'Alerts & Notifications', icon: alertsIcon    },
   { name: 'Milestones',            icon: milestonesIcon },
   { name: 'Resources',             icon: resourcesIcon  },
@@ -35,12 +36,9 @@ const badges = [
     const [showInstructorGroups, setShowInstructorGroups] = useState(false);
     const [showExperimentManagement, setShowExperimentManagement] = useState(false);
     const [showManageTestCase, setShowManageTestCase] = useState(false);
+    const [showPerformanceMetrics, setShowPerformanceMetrics] = useState(false);
     
-   /*  const [showDashBoard, setShowDashBoard] = useState(true);
-    const [showRestaurants, setShowRestaurants] = useState(false);
-    const [showReviews,setShowReviews] = useState(false);
-    const [showUsers, setShowUsers] = useState(false);
- */
+   
 
   // Handle button click to update the selected state
   const handleBadgeClick = (badge) => {
@@ -51,6 +49,8 @@ const badges = [
         setShowInstructorGroups(false);
         setShowExperimentManagement(false);
         setShowManageTestCase(false);
+        setShowPerformanceMetrics(false);
+
       }
       else if(badge === 'Experiments')
       {
@@ -58,6 +58,8 @@ const badges = [
         setShowInstructorGroups(false);
         setShowExperimentManagement(true);
         setShowManageTestCase(false);
+        setShowPerformanceMetrics(false);
+
 
       }
       else if(badge === 'Groups')
@@ -66,6 +68,8 @@ const badges = [
         setShowInstructorGroups(true);
         setShowExperimentManagement(false);
         setShowManageTestCase(false);
+        setShowPerformanceMetrics(false);
+
       }
       else if(badge === 'TestCase')
       {
@@ -73,7 +77,17 @@ const badges = [
         setShowInstructorGroups(false);
         setShowExperimentManagement(false);
         setShowManageTestCase(true);
+        setShowPerformanceMetrics(false);
+
         
+      }
+      else if(badge === 'Performance Metrics')
+      {
+         setShowInstructorMetricsView(false);
+        setShowInstructorGroups(false);
+        setShowExperimentManagement(false);
+        setShowManageTestCase(false);
+        setShowPerformanceMetrics(true);
       }
      /* else{
         setShowDashBoard(false);
@@ -109,6 +123,7 @@ const badges = [
                {showInstructorGroups && <InstructorGroups/>}
                {showExperimentManagement && <ExperimentManagement/>}
                {showManageTestCase && <ManageTestCases/>}
+               {showPerformanceMetrics && <PerformanceMetrics/>}
              {/*} {showRestaurants && <RestaurantsAndBars restaurants ={restaurants} handleRefetchData = {handleRefetchData }  />}
               {showReviews && <AdminReviews reviews={reviews}  handleRefetchData = {handleRefetchData } />}
               {showUsers && <AdminUsers  users = {users} handleRefetchData = {handleRefetchData } />}
