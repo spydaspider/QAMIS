@@ -19,7 +19,6 @@ import {
 const ManagePerformanceMetrics = () => {
   const { dispatch } = useContext(PerformanceMetricsContext);
 
-  // local state for the two teams & their metrics
   const [metricsList, setMetricsList] = useState([]);
   const [loading, setLoading]         = useState(true);
   const [error, setError]             = useState(null);
@@ -32,7 +31,6 @@ const ManagePerformanceMetrics = () => {
       try {
         // 1) Fetch teams and push into context
         const teamsResp = await axios.get('/api/teams');
-        console.log(teamsResp.data.data);
         const teams     = teamsResp.data.data; 
         dispatch({ type: 'SET_TEAMS', payload: teams });
 
@@ -55,22 +53,22 @@ const ManagePerformanceMetrics = () => {
     loadAll();
   }, [dispatch]);
 
-  if (loading) return <Loader/>
+  if (loading) return <Loader />;
   if (error)   return <p className={styles.pmError}>{error}</p>;
 
   return (
     <div className={styles.pmContainer}>
       {metricsList.map(({ team, metrics }) => {
         const data = [
-          { name: 'Bugs Logged',        value: metrics.bugsLogged },
-          { name: 'Bugs Resolved',      value: metrics.bugsResolvedCount },
+          { name: 'Bugs Logged',         value: metrics.bugsLogged },
+          { name: 'Bugs Resolved',       value: metrics.bugsResolvedCount },
           { 
-            name: 'Avg Resolution (h)',
+            name: 'Avg Resolution (h)',  
             value: Number(metrics.avgResolutionTimeHours.toFixed(2))
           },
-          { name: 'Test Exec',          value: metrics.testCasesExecuted },
+          { name: 'Test Exec',           value: metrics.testCasesExecuted },
           { 
-            name: 'Pass Rate (%)',
+            name: 'Pass Rate (%)',      
             value: Number((metrics.testPassRate * 100).toFixed(1))
           }
         ];
@@ -78,19 +76,27 @@ const ManagePerformanceMetrics = () => {
         return (
           <section key={team._id} className={styles.teamPanel}>
             <h2 className={styles.teamTitle}>{team.name} Metrics</h2>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart
-                data={data}
-                margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="value" fill="#0055ff" />
-              </BarChart>
-            </ResponsiveContainer>
+            <div style={{ width: '100%', overflow: 'hidden' }}>
+              <ResponsiveContainer width={700} height={400}>
+                <BarChart
+                  data={data}
+                  margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="teamBarGradient" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#1E3C72" />
+                      <stop offset="100%" stopColor="#2A5298" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="value" fill="url(#teamBarGradient)" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </section>
         );
       })}
