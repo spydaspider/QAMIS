@@ -62,13 +62,12 @@ const ManagePerformanceMetrics = () => {
         const data = [
           { name: 'Bugs Logged',         value: metrics.bugsLogged },
           { name: 'Bugs Resolved',       value: metrics.bugsResolvedCount },
-          { 
-            name: 'Avg Resolution (h)',  
+          { name: 'Defect Density',      value: Number(metrics.defectDensity.toFixed(2)) },
+          { name: 'Avg Resolution (h)',  
             value: Number(metrics.avgResolutionTimeHours.toFixed(2))
           },
           { name: 'Test Exec',           value: metrics.testCasesExecuted },
-          { 
-            name: 'Pass Rate (%)',      
+          { name: 'Pass Rate (%)',      
             value: Number((metrics.testPassRate * 100).toFixed(1))
           }
         ];
@@ -77,7 +76,7 @@ const ManagePerformanceMetrics = () => {
           <section key={team._id} className={styles.teamPanel}>
             <h2 className={styles.teamTitle}>{team.name} Metrics</h2>
             <div style={{ width: '100%', overflow: 'hidden' }}>
-              <ResponsiveContainer width={700} height={400}>
+              <ResponsiveContainer width={900} height={400}>
                 <BarChart
                   data={data}
                   margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
