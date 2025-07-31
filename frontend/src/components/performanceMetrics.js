@@ -22,54 +22,81 @@ const ManagePerformanceMetrics = () => {
   const [metricsList, setMetricsList] = useState([]);
   const [loading, setLoading]         = useState(true);
   const [error, setError]             = useState(null);
+  const [recalcLoading, setRecalcLoading] = useState(false);
+
+  // Load teams & metrics
+  const loadAll = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const teamsResp = await axios.get('/api/teams');
+      const teams     = teamsResp.data.data;
+      dispatch({ type: 'SET_TEAMS', payload: teams });
+
+      const metricsPromises = teams.map(team =>
+        axios
+          .get(`/api/teams/${team._id}/metrics/latest`)
+          .then(r => ({ team, metrics: r.data.metrics }))
+      );
+      const results = await Promise.all(metricsPromises);
+      setMetricsList(results);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to load teams or metrics');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadAll = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        // 1) Fetch teams and push into context
-        const teamsResp = await axios.get('/api/teams');
-        const teams     = teamsResp.data.data; 
-        dispatch({ type: 'SET_TEAMS', payload: teams });
-
-        // 2) Fetch each team’s latest metrics
-        const metricsPromises = teams.map(team =>
-          axios
-            .get(`/api/teams/${team._id}/metrics/latest`)
-            .then(r => ({ team, metrics: r.data.metrics }))
-        );
-        const results = await Promise.all(metricsPromises);
-        setMetricsList(results);
-      } catch (err) {
-        console.error(err);
-        setError('Failed to load teams or metrics');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadAll();
   }, [dispatch]);
+
+  // Recalculate all
+  const handleRecalculateAll = async () => {
+    setRecalcLoading(true);
+    setError(null);
+    try {
+      // POST to recalc for each team
+      await Promise.all(
+        metricsList.map(({ team }) =>
+          axios.post(`api/teams/${team._id}/metrics`)
+        )
+      );
+      // then reload
+      await loadAll();
+    } catch (err) {
+      console.error(err);
+      setError('Failed to recalculate metrics');
+    } finally {
+      setRecalcLoading(false);
+    }
+  };
 
   if (loading) return <Loader />;
   if (error)   return <p className={styles.pmError}>{error}</p>;
 
   return (
     <div className={styles.pmContainer}>
+      <div className={styles.pmHeader} style={{ marginBottom: '1.5rem' }}>
+        <h1>Team Performance Metrics</h1>
+        <button
+          className={styles.pmButton}
+          onClick={handleRecalculateAll}
+          disabled={recalcLoading}
+        >
+          {recalcLoading ? 'Recalculating…' : 'Recalculate All'}
+        </button>
+      </div>
+
       {metricsList.map(({ team, metrics }) => {
         const data = [
-          { name: 'Bugs Logged',         value: metrics.bugsLogged },
-          { name: 'Bugs Resolved',       value: metrics.bugsResolvedCount },
-          { name: 'Defect Density',      value: Number(metrics.defectDensity.toFixed(2)) },
-          { name: 'Avg Resolution (h)',  
-            value: Number(metrics.avgResolutionTimeHours.toFixed(2))
-          },
-          { name: 'Test Exec',           value: metrics.testCasesExecuted },
-          { name: 'Pass Rate (%)',      
-            value: Number((metrics.testPassRate * 100).toFixed(1))
-          }
+          { name: 'Bugs Logged',      value: metrics.bugsLogged },
+          { name: 'Bugs Resolved',    value: metrics.bugsResolvedCount },
+          { name: 'Defect Density',   value: Number(metrics.defectDensity.toFixed(2)) },
+          { name: 'Avg Resolution (h)', value: Number(metrics.avgResolutionTimeHours.toFixed(2)) },
+          { name: 'Test Exec',        value: metrics.testCasesExecuted },
+          { name: 'Pass Rate (%)',    value: Number((metrics.testPassRate * 100).toFixed(1)) }
         ];
 
         return (
