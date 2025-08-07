@@ -1,14 +1,21 @@
+// models/qaReport.js
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-const DownloadableReportSchema = new Schema({
-  // Which team or cohort this report covers
+const QAReportSchema = new Schema({
   team: {
     type: Schema.Types.ObjectId,
     ref: 'Team',
     required: true
   },
-  // Reporting period
+  teamName: {
+    type: String,
+    required: true
+  },
+  experiment: {
+    type: Schema.Types.ObjectId,
+    ref: 'Experiment'
+  },
   periodStart: {
     type: Date,
     required: true
@@ -17,38 +24,79 @@ const DownloadableReportSchema = new Schema({
     type: Date,
     required: true
   },
-  // Metrics
-  defectDensity: {
-    type: Number,   // defects per 100 test cases
+
+  // Test suite metrics
+  testsDesigned: {
+    type: Number,
+    default: 0,
+    required: true
+  },
+  testsExecuted: {
+    type: Number,
+    default: 0,
     required: true
   },
   testCoverage: {
-    type: Number,   // percentage (0-100)
+    type: Number,
     min: 0,
     max: 100,
+    default: 0,
     required: true
   },
-  averageResolutionTime: {
-    type: Number,   // hours (float)
+  passCount: {
+    type: Number,
+    default: 0,
     required: true
   },
-  // Report metadata
-  reportFormat: {
-    type: String,
-    enum: ['csv', 'pdf'],
-    default: 'csv',
+  failCount: {
+    type: Number,
+    default: 0,
     required: true
   },
-  reportFile: {
-    type: Buffer,    // raw file bytes
+  passRate: {
+    type: Number,
+    min: 0,
+    max: 100,
+    default: 0,
     required: true
   },
-  contentType: {
-    type: String,    // e.g., 'text/csv' or 'application/pdf'
+
+  // Defect metrics
+  newDefects: {
+    type: Number,
+    default: 0,
     required: true
+  },
+  defectsClosed: {
+    type: Number,
+    default: 0,
+    required: true
+  },
+  defectDensity: {
+    type: Number,
+    default: 0,
+    required: true
+  },
+
+  // Severity breakdown
+  severityCritical: {
+    type: Number,
+    default: 0
+  },
+  severityHigh: {
+    type: Number,
+    default: 0
+  },
+  severityMedium: {
+    type: Number,
+    default: 0
+  },
+  severityLow: {
+    type: Number,
+    default: 0
   }
 }, {
-  timestamps: { createdAt: 'generatedAt' }
+  timestamps: { createdAt: 'generatedAt', updatedAt: false }
 });
 
-module.exports = mongoose.model('DownloadableReport', DownloadableReportSchema);
+module.exports = mongoose.model('QAReport', QAReportSchema);
