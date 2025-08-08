@@ -1,4 +1,3 @@
-// Controller: generateGeneralQAReport
 const mongoose = require('mongoose');
 const { Parser } = require('json2csv');
 const Team = require('../models/teams');
@@ -7,6 +6,7 @@ const TestCase = require('../models/testCase');
 const Experiment = require('../models/experiments');
 const QAReport = require('../models/downloadableReport.js');
 const User = require('../models/user');
+const PerformanceMetrics = require('../models/performanceMetrics');
 
 const generateGeneralQAReport = async (req, res) => {
   try {
@@ -17,39 +17,70 @@ const generateGeneralQAReport = async (req, res) => {
       const teamId = team._id;
       const experiment = team.experiment;
 
-      // Get users in this team
+      // 1. Get defectDensity from latest metrics
+      let latestMetrics = await PerformanceMetrics
+        .findOne({ team: teamId })
+        .sort({ generatedAt: -1 });
+
+      const defectDensity = latestMetrics?.defectDensity || 0;
+
+      // 2. Get users in this team
       const users = await User.find({ _id: { $in: team.students } });
       const userIds = users.map(u => u._id);
 
-      // Get all bugs reported by this team's users (no date filtering)
+      // 3. Get all bugs reported by this team's users
       const bugs = await Bug.find({ reporter: { $in: userIds } });
       const defectsClosed = bugs.filter(b => ['closed', 'resolved'].includes(b.currentStatus)).length;
 
       const severityCount = { critical: 0, high: 0, medium: 0, low: 0 };
       bugs.forEach(bug => {
-        severityCount[bug.severity]++;
+        if (severityCount.hasOwnProperty(bug.severity)) {
+          severityCount[bug.severity]++;
+        }
       });
 
-      // Test cases assigned to this team via assignedTeams
-      const testCases = await TestCase.find({ 'assignedTeams._id': teamId });
-      const testsDesigned = testCases.length;
+      // 4. Calculate test case stats
+      // 4. Calculate test case stats
+const testsDesigned = await TestCase.countDocuments({ assignedTeams: teamId });
 
-      // Count executions where execution.team matches this team
-      const execStats = await TestCase.aggregate([
-        { $unwind: '$executions' },
-        { $match: { 'executions.team._id': teamId } },
-        { $group: { _id: '$executions.status', count: { $sum: 1 } } }
-      ]);
+const execStats = await TestCase.aggregate([
+  { $unwind: '$executions' },
+  { $match: { 'executions.team': teamId } },
+  { $group: { _id: '$executions.status', count: { $sum: 1 } } }
+]);
 
-      let passCount = 0, failCount = 0;
-      execStats.forEach(stat => {
-        if (stat._id === 'pass') passCount = stat.count;
-        if (stat._id === 'fail') failCount = stat.count;
-      });
+let passCount = 0, failCount = 0;
+execStats.forEach(stat => {
+  if (stat._id === 'pass') passCount = stat.count;
+  if (stat._id === 'fail') failCount = stat.count;
+});
 
-      const testsExecuted = passCount + failCount;
-      const passRate = testsExecuted ? (passCount / testsExecuted) * 100 : 0;
+const testsExecuted = passCount + failCount;
+const passRate = testsExecuted ? (passCount / testsExecuted) * 100 : 0;
 
+// 5. Capped test coverage
+let testCoverage = testsDesigned
+  ? (testsExecuted / testsDesigned) * 100
+  : 0;
+testCoverage = Math.min(testCoverage, 100);
+
+    
+
+      // 6. Save testCoverage back into latest performance metrics
+      if (latestMetrics) {
+        latestMetrics.testCoverage = testCoverage;
+        await latestMetrics.save();
+      } else {
+        // If no metrics exist yet, create one with coverage only
+        latestMetrics = new PerformanceMetrics({
+          team: teamId,
+          testCoverage,
+          defectDensity
+        });
+        await latestMetrics.save();
+      }
+
+      // 7. Create report data
       const reportData = {
         team: teamId,
         teamName: team.name,
@@ -58,13 +89,13 @@ const generateGeneralQAReport = async (req, res) => {
         periodEnd: experiment?.endDate || new Date(),
         testsDesigned,
         testsExecuted,
-        testCoverage: 0,
+        testCoverage: testCoverage.toFixed(2),
         passCount,
         failCount,
         passRate: passRate.toFixed(2),
         newDefects: bugs.length,
         defectsClosed,
-        defectDensity: testsExecuted ? (bugs.length / testsExecuted) * 1000 : 0,
+        defectDensity,
         severityCritical: severityCount.critical,
         severityHigh: severityCount.high,
         severityMedium: severityCount.medium,
