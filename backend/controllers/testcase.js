@@ -4,14 +4,50 @@ const TestCase = require('../models/testCase');
 const createTestCase = async (req, res) => {
   try {
     const { title, description, steps, author, assignedTeams } = req.body;
+
+    // Create and save
     const testCase = new TestCase({ title, description, steps, author, assignedTeams });
-    const saved = await testCase.save();
-    res.status(201).json(saved);
+    await testCase.save();
+
+    // Populate before returning
+    const populated = await TestCase.findById(testCase._id)
+      .populate('author', 'name email')
+      .populate('assignedTeams', 'name')
+      .populate('executions.team', 'name')
+      .populate('executions.executedBy', 'name');
+
+    res.status(201).json(populated);
   } catch (err) {
     console.error(err);
     res.status(400).json({ error: err.message });
   }
 };
+
+// Update a test case
+const updateTestCase = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const options = { new: true, runValidators: true };
+
+    // Update and populate
+    const updated = await TestCase.findByIdAndUpdate(id, updates, options)
+      .populate('author', 'name email')
+      .populate('assignedTeams', 'name')
+      .populate('executions.team', 'name')
+      .populate('executions.executedBy', 'name');
+
+    if (!updated) {
+      return res.status(404).json({ error: 'TestCase not found' });
+    }
+
+    res.json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: err.message });
+  }
+};
+
 
 // Get all test cases (optionally filter by team or author)
 const getAllTestCases = async (req, res) => {
@@ -52,20 +88,7 @@ const getTestCaseById = async (req, res) => {
   }
 };
 
-// Update a test case (e.g., edit steps, title, assignedTeams)
-const updateTestCase = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updates = req.body;
-    const options = { new: true, runValidators: true };
-    const updated = await TestCase.findByIdAndUpdate(id, updates, options);
-    if (!updated) return res.status(404).json({ error: 'TestCase not found' });
-    res.json(updated);
-  } catch (err) {
-    console.error(err);
-    res.status(400).json({ error: err.message });
-  }
-};
+
 
 // Delete a test case
 const deleteTestCase = async (req, res) => {

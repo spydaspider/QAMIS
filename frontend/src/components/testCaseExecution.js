@@ -51,6 +51,7 @@ const TestCaseExecution = () => {
       } catch {
         setLoading(false);
       }
+      
     })();
   }, [user]);
 

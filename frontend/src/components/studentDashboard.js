@@ -18,7 +18,6 @@ const StudentDashboard = () =>{
 const badges = [
   { name: 'Dashboard',             icon: dashboardIcon },
   { name: 'Log a Bug',                icon: logBugsIcon    },
-  {name: 'Defect Data',                  icon: logBugsIcon},
   { name: 'Bugs Discussion',             icon: myBugsIcon       },
   { name: 'Test Case Execution',           icon: leaderBoardIcon },
   { name: 'Test Case Discussion',           icon: discussionIcon},
@@ -43,15 +42,7 @@ const badges = [
                setshowMyTestCases(false);
 
       }
-      else if(badge === 'Defect Data')
-      {
-       setShowLogBug(false);
-       setShowSprints(true);
-       setShowTestCaseExecution(false);
-       setShowMyBugs(false);
-              setshowMyTestCases(false);
-
-      }
+     
       else if(badge === 'Test Case Execution')
       {
         setShowLogBug(false);
@@ -117,7 +108,6 @@ const badges = [
               {showUsers && <AdminUsers  users = {users} handleRefetchData = {handleRefetchData } />}
               */}
               {showLogBug && <LogBug/>}
-              {showSprints && <ManageSprints/>}
               {showTestCaseExecution && <TestCaseExecution/>}
               {showMyBugs && <BugList/>}
               {showMyTestCases && <TestCaseList/>}
