@@ -3,11 +3,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const QAReportSchema = new Schema({
-  team: {
-    type: Schema.Types.ObjectId,
-    ref: 'Team',
-    required: true
-  },
+  
   teamName: {
     type: String,
     required: true

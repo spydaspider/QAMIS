@@ -40,38 +40,34 @@ const generateGeneralQAReport = async (req, res) => {
       });
 
       // 4. Calculate test case stats
-      // 4. Calculate test case stats
-const testsDesigned = await TestCase.countDocuments({ assignedTeams: teamId });
+      const testsDesigned = await TestCase.countDocuments({ assignedTeams: teamId });
 
-const execStats = await TestCase.aggregate([
-  { $unwind: '$executions' },
-  { $match: { 'executions.team': teamId } },
-  { $group: { _id: '$executions.status', count: { $sum: 1 } } }
-]);
+      const execStats = await TestCase.aggregate([
+        { $unwind: '$executions' },
+        { $match: { 'executions.team': teamId } },
+        { $group: { _id: '$executions.status', count: { $sum: 1 } } }
+      ]);
 
-let passCount = 0, failCount = 0;
-execStats.forEach(stat => {
-  if (stat._id === 'pass') passCount = stat.count;
-  if (stat._id === 'fail') failCount = stat.count;
-});
+      let passCount = 0, failCount = 0;
+      execStats.forEach(stat => {
+        if (stat._id === 'pass') passCount = stat.count;
+        if (stat._id === 'fail') failCount = stat.count;
+      });
 
-const testsExecuted = passCount + failCount;
-const passRate = testsExecuted ? (passCount / testsExecuted) * 100 : 0;
+      const testsExecuted = passCount + failCount;
+      const passRate = testsExecuted ? (passCount / testsExecuted) * 100 : 0;
 
-// 5. Capped test coverage
-let testCoverage = testsDesigned
-  ? (testsExecuted / testsDesigned) * 100
-  : 0;
-testCoverage = Math.min(testCoverage, 100);
-
-    
+      // 5. Capped test coverage
+      let testCoverage = testsDesigned
+        ? (testsExecuted / testsDesigned) * 100
+        : 0;
+      testCoverage = Math.min(testCoverage, 100);
 
       // 6. Save testCoverage back into latest performance metrics
       if (latestMetrics) {
         latestMetrics.testCoverage = testCoverage;
         await latestMetrics.save();
       } else {
-        // If no metrics exist yet, create one with coverage only
         latestMetrics = new PerformanceMetrics({
           team: teamId,
           testCoverage,
@@ -80,11 +76,9 @@ testCoverage = Math.min(testCoverage, 100);
         await latestMetrics.save();
       }
 
-      // 7. Create report data
+      // 7. Build report data for DB (keep Date objects here for storage)
       const reportData = {
-        team: teamId,
         teamName: team.name,
-        experiment: experiment?._id || null,
         periodStart: experiment?.startDate || new Date('2000-01-01'),
         periodEnd: experiment?.endDate || new Date(),
         testsDesigned,
@@ -104,16 +98,28 @@ testCoverage = Math.min(testCoverage, 100);
 
       await QAReport.create(reportData);
 
+      // 8. Format dates for CSV only
+      const { periodStart, periodEnd, ...rest } = reportData;
       report.push({
+        teamName: team.name,
         experimentName: experiment?.title || 'Unknown',
-        periodStart: reportData.periodStart.toISOString().slice(0, 10),
-        periodEnd: reportData.periodEnd.toISOString().slice(0, 10),
-        ...reportData
+        periodStart: periodStart.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }),
+        periodEnd: periodEnd.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }),
+        ...rest
       });
     }
 
+    // 9. CSV fields (no team ID, no experiment ID)
     const fields = [
-      'team', 'teamName', 'experimentName', 'periodStart', 'periodEnd',
+      'teamName', 'experimentName', 'periodStart', 'periodEnd',
       'testsDesigned', 'testsExecuted', 'testCoverage',
       'passCount', 'failCount', 'passRate',
       'newDefects', 'defectsClosed', 'defectDensity',
