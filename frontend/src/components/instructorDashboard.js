@@ -14,29 +14,32 @@ import InstructorGroups from './instructorGroups';
 import ExperimentManagement from './experiments';
 import ManageTestCases from './testCase';
 import PerformanceMetrics from './performanceMetrics';
+import DownloadQAReport from './downloadableReport';
 
 const InstructorDashboard = () =>{
    
   //add images to the badges
 const badges = [
-  { name: 'Dashboard',             icon: dashboardIcon },
-  { name: 'Experiments',             icon: testCaseIcon },
+/*   { name: 'Dashboard',             icon: dashboardIcon },
+ */  { name: 'Experiments',             icon: testCaseIcon },
   { name: 'Groups',                icon: groupsIcon    },
   { name: 'QAReports',             icon: reportsIcon        },
   { name: 'LeaderBoard',           icon: leaderBoardIcon },
   { name: 'Performance Metrics',           icon: submissionsIcon},
-  { name: 'Alerts & Notifications', icon: alertsIcon    },
-  { name: 'Milestones',            icon: milestonesIcon },
-  { name: 'Resources',             icon: resourcesIcon  },
-  { name: 'TestCase',              icon: testCaseIcon   },
+/*   { name: 'Alerts & Notifications', icon: alertsIcon    },
+ *//*   { name: 'Milestones',            icon: milestonesIcon },
+ */ 
+/*  { name: 'Resources',             icon: resourcesIcon  },
+ */  { name: 'TestCase',              icon: testCaseIcon   },
 ];
     const message = "Instructor Dashboard";
-    const [selectedBadge, setSelectedBadge] = useState("Dashboard");
+    const [selectedBadge, setSelectedBadge] = useState("Experiments");
     const [showInstructorMetricsView, setShowInstructorMetricsView] = useState(true);
     const [showInstructorGroups, setShowInstructorGroups] = useState(false);
     const [showExperimentManagement, setShowExperimentManagement] = useState(false);
     const [showManageTestCase, setShowManageTestCase] = useState(false);
     const [showPerformanceMetrics, setShowPerformanceMetrics] = useState(false);
+    const [showQAReports, setShowQAReports] = useState(false);
     
    
 
@@ -50,6 +53,8 @@ const badges = [
         setShowExperimentManagement(false);
         setShowManageTestCase(false);
         setShowPerformanceMetrics(false);
+                        setShowQAReports(false);
+
 
       }
       else if(badge === 'Experiments')
@@ -59,6 +64,8 @@ const badges = [
         setShowExperimentManagement(true);
         setShowManageTestCase(false);
         setShowPerformanceMetrics(false);
+                        setShowQAReports(false);
+
 
 
       }
@@ -69,6 +76,8 @@ const badges = [
         setShowExperimentManagement(false);
         setShowManageTestCase(false);
         setShowPerformanceMetrics(false);
+                        setShowQAReports(false);
+
 
       }
       else if(badge === 'TestCase')
@@ -78,6 +87,8 @@ const badges = [
         setShowExperimentManagement(false);
         setShowManageTestCase(true);
         setShowPerformanceMetrics(false);
+                        setShowQAReports(false);
+
 
         
       }
@@ -88,6 +99,18 @@ const badges = [
         setShowExperimentManagement(false);
         setShowManageTestCase(false);
         setShowPerformanceMetrics(true);
+                setShowQAReports(false);
+
+      }
+      else if(badge === 'QAReports')
+      {
+         setShowInstructorMetricsView(false);
+        setShowInstructorGroups(false);
+        setShowExperimentManagement(false);
+        setShowManageTestCase(false);
+        setShowPerformanceMetrics(false);
+        setShowQAReports(true);
+
       }
      /* else{
         setShowDashBoard(false);
@@ -119,11 +142,12 @@ const badges = [
                 </div>
 
               </div>
-               {showInstructorMetricsView && <InstructorControlPanel/>}
-               {showInstructorGroups && <InstructorGroups/>}
+{/*                {showInstructorMetricsView && <InstructorControlPanel/>}
+ */}               {showInstructorGroups && <InstructorGroups/>}
                {showExperimentManagement && <ExperimentManagement/>}
                {showManageTestCase && <ManageTestCases/>}
                {showPerformanceMetrics && <PerformanceMetrics/>}
+               {showQAReports && <DownloadQAReport/>}
              {/*} {showRestaurants && <RestaurantsAndBars restaurants ={restaurants} handleRefetchData = {handleRefetchData }  />}
               {showReviews && <AdminReviews reviews={reviews}  handleRefetchData = {handleRefetchData } />}
               {showUsers && <AdminUsers  users = {users} handleRefetchData = {handleRefetchData } />}

@@ -10,6 +10,7 @@ import { BugsContextProvider } from './context/logBugContext';
 import { SprintContextProvider } from './context/sprintContext';
 import { DiscussionProvider } from './context/discussionThreadContext';
 import { PerformanceMetricsProvider } from './context/performanceMetricsContext';
+import { QAReportProvider } from './context/downloadableReportContext';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   
@@ -22,7 +23,10 @@ root.render(
               <SprintContextProvider>
                 <DiscussionProvider>
                   <PerformanceMetricsProvider>
-                        <App/>
+                    <QAReportProvider>
+                      <App/>
+
+                    </QAReportProvider>
                   </PerformanceMetricsProvider>
                 </DiscussionProvider>
               </SprintContextProvider>
