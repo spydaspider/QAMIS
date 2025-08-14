@@ -20,8 +20,8 @@ const InstructorDashboard = () =>{
    
   //add images to the badges
 const badges = [
-/*   { name: 'Dashboard',             icon: dashboardIcon },
- */  { name: 'Experiments',             icon: testCaseIcon },
+  { name: 'Dashboard',             icon: dashboardIcon },
+   { name: 'Experiments',             icon: testCaseIcon },
   { name: 'Groups',                icon: groupsIcon    },
   { name: 'QAReports',             icon: reportsIcon        },
   { name: 'LeaderBoard',           icon: leaderBoardIcon },
@@ -142,8 +142,8 @@ const badges = [
                 </div>
 
               </div>
-{/*                {showInstructorMetricsView && <InstructorControlPanel/>}
- */}               {showInstructorGroups && <InstructorGroups/>}
+                {showInstructorMetricsView && <InstructorControlPanel/>}
+              {showInstructorGroups && <InstructorGroups/>}
                {showExperimentManagement && <ExperimentManagement/>}
                {showManageTestCase && <ManageTestCases/>}
                {showPerformanceMetrics && <PerformanceMetrics/>}

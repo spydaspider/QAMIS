@@ -1,6 +1,5 @@
-
 // src/components/TestCaseExecution.jsx
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuthContext } from '../hooks/useAuthContext';
 import { useTestCasesContext } from '../hooks/useTestCasesContext';
 import styles from './testCaseExecution.module.css';
@@ -10,14 +9,13 @@ const TestCaseExecution = () => {
   const { testCases, dispatch } = useTestCasesContext();
   const { user } = useAuthContext();
 
-  const [teamsList, setTeamsList] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [error, setError] = useState(null);
   const [execForm, setExecForm] = useState({ status: 'not run', actualResult: '', comments: '' });
   const [editingExec, setEditingExec] = useState({ caseId: null, idx: null });
   const [loading, setLoading] = useState(true);
   const [studentNoTeam, setStudentNoTeam] = useState(false);
-   let studentHasTeamCounter = 0;
+
   // Fetch teams the user belongs to and auto-select
   useEffect(() => {
     if (!user) return;
@@ -25,37 +23,29 @@ const TestCaseExecution = () => {
       try {
         const res = await fetch('/api/teams', { headers: { Authorization: `Bearer ${user.token}` } });
         const json = await res.json();
-    
-        if (res.ok && Array.isArray(json.data) && json.data.length) {
 
-           for(let i = 0; i < json.data.length; i++)
-           {
-            for(let j = 0; j < json.data[i].students.length; j++)
-            {
-             if(json.data[i].students[j]._id === user.userId)
-             {
-                       setSelectedTeam(json.data[i]._id);
-                       studentHasTeamCounter = 1;
-             } 
-             
+        if (res.ok && Array.isArray(json.data) && json.data.length) {
+          let foundTeam = false;
+          for (const team of json.data) {
+            if (team.students.some(s => s._id === user.userId)) {
+              setSelectedTeam(team._id);
+              foundTeam = true;
+              break;
             }
-            
-           }
-          if(studentHasTeamCounter === 0)
-          {
-            setLoading(false);
+          }
+          if (!foundTeam) {
             setStudentNoTeam(true);
           }
-        
         }
       } catch {
+        setError('Failed to fetch teams');
+      } finally {
         setLoading(false);
       }
-      
     })();
   }, [user]);
 
-  // Fetch test cases by auto-selected team
+  // Fetch test cases for the selected team
   useEffect(() => {
     if (!user || !selectedTeam) return;
     setError(null);
@@ -66,15 +56,16 @@ const TestCaseExecution = () => {
           headers: { Authorization: `Bearer ${user.token}` }
         });
         const json = await res.json();
-        if (res.ok) dispatch({ type: 'SET_TESTCASES', payload: json });
-        else setError(json.error);
+        if (res.ok) {
+          dispatch({ type: 'SET_TESTCASES', payload: json });
+        } else {
+          setError(json.error);
+        }
       } catch {
         setError('Failed to load test cases');
-      }
-      finally{
+      } finally {
         setLoading(false);
       }
-      
     })();
   }, [user, selectedTeam, dispatch]);
 
@@ -157,8 +148,10 @@ const TestCaseExecution = () => {
     setExecForm({ status: exec.status, actualResult: exec.actualResult, comments: exec.comments });
     setEditingExec({ caseId: tcId, idx });
   };
-  if(loading) return <Loader/>;
-  if(studentNoTeam) return <h1 className={styles.gridText}>You are not assigned to any group, speak to instructor.</h1>
+
+  if (loading) return <Loader />;
+  if (studentNoTeam) return <h1 className={styles.gridText}>You are not assigned to any group, speak to instructor.</h1>;
+
   return (
     <div className={styles.container}>
       {error && <div className={styles.error}>{error}</div>}
@@ -169,6 +162,22 @@ const TestCaseExecution = () => {
           <div key={tc._id} className={styles.card}>
             <h3 className={styles.caseTitle}>{tc.title}</h3>
             <p className={styles.caseDesc}>{tc.description}</p>
+
+            {/* New: Show test case steps */}
+            {tc.steps && tc.steps.length > 0 && (
+              <div className={styles.stepsContainer}>
+                <h4 className={styles.stepsTitle}>Steps:</h4>
+                <ol className={styles.stepsList}>
+                  {tc.steps.map((step, idx) => (
+                    <li key={idx} className={styles.stepItem}>
+                      <strong>Step {step.stepNumber || idx + 1}:</strong> {step.action}
+                      <br />
+                      <em>Expected:</em> {step.expectedResult}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
 
             <ul className={styles.execList}>
               {tc.executions.map((ex, i) => (

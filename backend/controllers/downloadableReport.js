@@ -12,9 +12,12 @@ const generateGeneralQAReport = async (req, res) => {
   try {
     const teams = await Team.find().populate('experiment');
     const report = [];
+    const processedTeamNames = [];
 
     for (const team of teams) {
       const teamId = team._id;
+      const teamName = team.name;
+      processedTeamNames.push(teamName);
       const experiment = team.experiment;
 
       // 1. Get defectDensity from latest metrics
@@ -34,7 +37,7 @@ const generateGeneralQAReport = async (req, res) => {
 
       const severityCount = { critical: 0, high: 0, medium: 0, low: 0 };
       bugs.forEach(bug => {
-        if (severityCount.hasOwnProperty(bug.severity)) {
+        if (bug && bug.severity && severityCount.hasOwnProperty(bug.severity)) {
           severityCount[bug.severity]++;
         }
       });
@@ -57,11 +60,11 @@ const generateGeneralQAReport = async (req, res) => {
       const testsExecuted = passCount + failCount;
       const passRate = testsExecuted ? (passCount / testsExecuted) * 100 : 0;
 
-      // 5. Capped test coverage
-      let testCoverage = testsDesigned
-        ? (testsExecuted / testsDesigned) * 100
-        : 0;
+      // 5. Capped test coverage (as number)
+      let testCoverage = testsDesigned ? (testsExecuted / testsDesigned) * 100 : 0;
       testCoverage = Math.min(testCoverage, 100);
+      testCoverage = Number(testCoverage.toFixed(2));
+      const passRateNum = Number(passRate.toFixed(2));
 
       // 6. Save testCoverage back into latest performance metrics
       if (latestMetrics) {
@@ -76,32 +79,38 @@ const generateGeneralQAReport = async (req, res) => {
         await latestMetrics.save();
       }
 
-      // 7. Build report data for DB (keep Date objects here for storage)
+      // 7. Build report data for DB (store numbers, dates as Date objects)
       const reportData = {
-        teamName: team.name,
+        teamName: teamName,
         periodStart: experiment?.startDate || new Date('2000-01-01'),
         periodEnd: experiment?.endDate || new Date(),
         testsDesigned,
         testsExecuted,
-        testCoverage: testCoverage.toFixed(2),
+        testCoverage,              // number
         passCount,
         failCount,
-        passRate: passRate.toFixed(2),
+        passRate: passRateNum,     // number
         newDefects: bugs.length,
         defectsClosed,
         defectDensity,
         severityCritical: severityCount.critical,
         severityHigh: severityCount.high,
         severityMedium: severityCount.medium,
-        severityLow: severityCount.low
+        severityLow: severityCount.low,
+        generatedAt: new Date()
       };
 
-      await QAReport.create(reportData);
+      // Upsert: overwrite existing report for this team or create if missing
+      await QAReport.updateOne(
+        { teamName: teamName },
+        { $set: reportData },
+        { upsert: true }
+      );
 
-      // 8. Format dates for CSV only
+      // 8. Format dates for CSV only (strings)
       const { periodStart, periodEnd, ...rest } = reportData;
       report.push({
-        teamName: team.name,
+        teamName,
         experimentName: experiment?.title || 'Unknown',
         periodStart: periodStart.toLocaleDateString('en-US', {
           year: 'numeric',
@@ -117,7 +126,11 @@ const generateGeneralQAReport = async (req, res) => {
       });
     }
 
-    // 9. CSV fields (no team ID, no experiment ID)
+    // 9. Remove any QAReport documents not in processedTeamNames
+    // This ensures the collection only contains reports for the teams processed (i.e., only those two documents).
+    await QAReport.deleteMany({ teamName: { $nin: processedTeamNames } });
+
+    // 10. CSV fields (no team ID, no experiment ID)
     const fields = [
       'teamName', 'experimentName', 'periodStart', 'periodEnd',
       'testsDesigned', 'testsExecuted', 'testCoverage',

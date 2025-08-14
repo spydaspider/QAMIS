@@ -5,6 +5,7 @@
   background: var(--bg-light);
   color: var(--text-dark);
   grid-column: 3/-1;
+  overflow-y: auto;
 }
 .title {
   font-size: 1.5rem;

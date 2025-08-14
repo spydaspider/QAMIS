@@ -9,6 +9,7 @@ const discussionThread = require('./routes/discussionThread.js');
 const performanceMetrics = require('./routes/performanceMetrics.js');
 const sprints = require('./routes/sprint.js');
 const report = require('./routes/downloadableReport.js');
+const dashboardSummary = require('./routes/instructorDashboardSummary.js')
 require('dotenv').config();
 
 const app = express();
@@ -31,6 +32,7 @@ app.use('/api/discussionThread', discussionThread);
 app.use('/api/teams/:teamId/metrics', performanceMetrics);
 app.use('/api/sprints', sprints);
 app.use('/api/report', report);
+app.use('/api/dashboard', dashboardSummary)
  mongoose.connect(process.env.MONGO_URI).then(()=>{
     app.listen(PORT,()=>{    
         console.log("connected to the mongoose server on ", PORT);

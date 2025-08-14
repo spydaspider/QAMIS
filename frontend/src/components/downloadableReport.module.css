@@ -3,7 +3,7 @@
   padding: 2rem;
   border-radius: 1rem;
   box-shadow: 0px 4px 12px rgba(0,0,0,0.08);
-  max-width: 600px;
+  max-width: 1000px;
   margin: 2rem auto;
   grid-column: 3/-1;
 }
@@ -62,3 +62,50 @@
   text-align: center;
   margin-top: 1rem;
 }
+.qaTableWrapper {
+  margin-top: 2rem;
+  overflow-x: auto; /* horizontal scroll if table is wide */
+}
+
+.qaTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0px 4px 12px rgba(0,0,0,0.05);
+}
+
+.qaTable thead {
+  background: linear-gradient(90deg, #1E3C72 0%, #2A5298 100%);
+  color: white;
+}
+
+.qaTable th,
+.qaTable td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.95rem;
+}
+
+.qaTable th {
+  font-weight: bold;
+}
+
+.qaTable tbody tr {
+  border-bottom: 1px solid #eaeaea;
+  transition: background 0.2s ease;
+}
+
+.qaTable tbody tr:hover {
+  background: #f9f9f9;
+}
+
+.qaTable tbody tr:last-child {
+  border-bottom: none;
+}
+
+.qaTable td {
+  color: #333;
+}
+
