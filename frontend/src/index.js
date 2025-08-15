@@ -11,6 +11,7 @@ import { SprintContextProvider } from './context/sprintContext';
 import { DiscussionProvider } from './context/discussionThreadContext';
 import { PerformanceMetricsProvider } from './context/performanceMetricsContext';
 import { QAReportProvider } from './context/downloadableReportContext';
+import { DashboardProvider } from './context/instructorDashboardSummaryContext';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   
@@ -24,7 +25,10 @@ root.render(
                 <DiscussionProvider>
                   <PerformanceMetricsProvider>
                     <QAReportProvider>
-                      <App/>
+                      <DashboardProvider>
+                         <App/>
+
+                      </DashboardProvider>
 
                     </QAReportProvider>
                   </PerformanceMetricsProvider>

@@ -1,0 +1,48 @@
+.container {
+  padding: 20px;
+  grid-column: 3/-1;
+}
+
+.summaryCards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.card h4 {
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.card p {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.chartSection {
+  margin-bottom: 30px;
+}
+
+.activitySection ul {
+  list-style: none;
+  padding: 0;
+}
+
+.activitySection li {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.type {
+  font-weight: bold;
+  text-transform: capitalize;
+}

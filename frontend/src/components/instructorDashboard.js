@@ -9,7 +9,7 @@ import alertsIcon from '../assets/icons/Alerts.png';
 import milestonesIcon from '../assets/icons/milestones.png';
 import resourcesIcon from '../assets/icons/resources.png';
 import testCaseIcon from '../assets/icons/testcase.png';
-import InstructorControlPanel from './instructorMetricsView';
+import InstructorControlPanel from './instructorDashboardSummary.js';
 import InstructorGroups from './instructorGroups';
 import ExperimentManagement from './experiments';
 import ManageTestCases from './testCase';
@@ -33,7 +33,7 @@ const badges = [
  */  { name: 'TestCase',              icon: testCaseIcon   },
 ];
     const message = "Instructor Dashboard";
-    const [selectedBadge, setSelectedBadge] = useState("Experiments");
+    const [selectedBadge, setSelectedBadge] = useState("Dashboard");
     const [showInstructorMetricsView, setShowInstructorMetricsView] = useState(true);
     const [showInstructorGroups, setShowInstructorGroups] = useState(false);
     const [showExperimentManagement, setShowExperimentManagement] = useState(false);
