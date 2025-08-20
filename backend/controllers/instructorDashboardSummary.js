@@ -3,9 +3,13 @@ const User = require('../models/user');
 const Experiment = require('../models/experiments');
 const Bug = require('../models/logBug');
 const QAReport = require('../models/downloadableReport.js');
+const { generateAndSaveQAReports } = require('../services/qAReportService'); // <- shared generator
 
 const InstructorDashboardSummary = async (req, res) => {
   try {
+    //always regenerate QAReports first
+    await generateAndSaveQAReports();
+
     // run DB ops concurrently
     const [
       teamCountRes,
@@ -40,6 +44,7 @@ const InstructorDashboardSummary = async (req, res) => {
         .populate({ path: 'team', model: 'Team', select: 'teamName' })
     ]);
 
+    // unwrap helper
     const unwrap = (res, name, fallback = null) => {
       if (res.status === 'fulfilled') return res.value;
       console.error(`DB op failed: ${name}`, res.reason && (res.reason.stack || res.reason));
