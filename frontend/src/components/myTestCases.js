@@ -14,20 +14,19 @@ export default function TestCaseList() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    
     if (!user) return;
     (async () => {
       try { 
-        // 1) fetch all bugs
+        // 1) fetch all test cases
         const bRes = await fetch('/api/testCases', {
           headers: { Authorization: `Bearer ${user.token}` }
         });
         const bData = await bRes.json();
         
-        if (!bRes.ok) throw new Error(bData.message || 'Failed to load bugs');
+        if (!bRes.ok) throw new Error(bData.message || 'Failed to load test cases');
         setBugs(bData);
 
-        // 2) fetch all Bug‐threads in one go
+        // 2) fetch all TestCase-threads in one go
         const tRes = await fetch(
           '/api/discussionThread?parentType=TestCase',
           { headers: { Authorization: `Bearer ${user.token}` } }
@@ -46,7 +45,7 @@ export default function TestCaseList() {
       } catch (err) {
         setError(err.message);
       }
-      finally{
+      finally {
         setLoading(false);
       }
     })();
@@ -54,8 +53,8 @@ export default function TestCaseList() {
 
   const toggle = id => setVisible(v => ({ ...v, [id]: !v[id] }));
 
-  if (!user) return <p>Please log in to view bugs.</p>;
-  if(loading) return <Loader/>;
+  if (!user) return <p>Please log in to view test cases.</p>;
+  if (loading) return <Loader/>;
 
   return (
     <div className={styles.feed}>
@@ -66,7 +65,10 @@ export default function TestCaseList() {
             <h3 className={styles.title}>{bug.title}</h3>
             <p className={styles.meta}>
               Created by <strong>{bug.author?.username || 'Unknown'}</strong>
-              &nbsp;• Team: <em>{bug.team?.name || 'N/A'}</em>
+              &nbsp;• Teams:{" "}
+              {bug.assignedTeams?.length > 0
+                ? bug.assignedTeams.map(team => team.name).join(", ")
+                : "N/A"}
             </p>
           </div>
           <p className={styles.description}>{bug.description}</p>
