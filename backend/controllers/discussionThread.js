@@ -30,9 +30,9 @@ const createThread = async (req, res) => {
     });
     // populate right away
     thread = await DiscussionThread.findById(thread._id)
-      .populate('author', 'name email')
-      .populate('comments.author', 'name email')
-      .populate('comments.replies.author', 'name email');
+      .populate('author', 'name email username') // <-- added username
+      .populate('comments.author', 'name email username') // <-- added username
+      .populate('comments.replies.author', 'name email username'); // <-- added username
     res.status(201).json({ success: true, thread });
   } catch (err) {
     sendError(res, 500, err.message);
@@ -41,7 +41,7 @@ const createThread = async (req, res) => {
 
 /**
  * POST   /api/discussionThread/:threadId/comments
- * Add a top‑level comment.
+ * Add a top-level comment.
  */
 const addComment = async (req, res) => {
   const { threadId } = req.params;
@@ -64,7 +64,7 @@ const addComment = async (req, res) => {
 
     // re-fetch the last comment with populated author
     const populated = await DiscussionThread.findById(threadId)
-      .populate('comments.author', 'name email');
+      .populate('comments.author', 'name email username'); // <-- added username
     const newComment = populated.comments.pop();
 
     res.status(201).json({ success: true, comment: newComment });
@@ -108,8 +108,8 @@ const replyToComment = async (req, res) => {
 
     // re-fetch & populate entire tree
     const populated = await DiscussionThread.findById(threadId)
-      .populate('comments.author', 'name email')
-      .populate('comments.replies.author', 'name email');
+      .populate('comments.author', 'name email username') // <-- added username
+      .populate('comments.replies.author', 'name email username'); // <-- added username
 
     const freshParent = findCommentRecursively(populated.comments, commentId);
     const newReply = freshParent.replies[freshParent.replies.length - 1];
@@ -158,23 +158,23 @@ const getThread = async (req, res) => {
 
   try {
     const thread = await DiscussionThread.findById(threadId)
-      .populate('author', 'name email')
+      .populate('author', 'name email username') // <-- added username
       .populate({
         path: 'comments.author',
-        select: 'name email'
+        select: 'name email username' // <-- added username
       })
       .populate({
         path: 'comments.replies',
         populate: {
           path: 'author',
-          select: 'name email'
+          select: 'name email username' // <-- added username
         }
       })
       .populate({
         path: 'comments.replies.replies',
         populate: {
           path: 'author',
-          select: 'name email'
+          select: 'name email username' // <-- added username
         }
       });
 
@@ -208,23 +208,23 @@ const listThreads = async (req, res) => {
     }
 
   const threads = await DiscussionThread.find(filter)
-  .populate('author', 'name email')
+  .populate('author', 'name email username') // <-- added username
   .populate({
     path: 'comments.author',
-    select: 'name email'
+    select: 'name email username' // <-- added username
   })
   .populate({
     path: 'comments.replies',
     populate: {
       path: 'author',
-      select: 'name email'
+      select: 'name email username' // <-- added username
     }
   })
   .populate({
     path: 'comments.replies.replies',
     populate: {
       path: 'author',
-      select: 'name email'
+      select: 'name email username' // <-- added username
     }
   });
 

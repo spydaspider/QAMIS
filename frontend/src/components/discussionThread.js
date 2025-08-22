@@ -71,6 +71,7 @@ const DiscussionThread = ({ parentType, parentId }) => {
         body: JSON.stringify({ content: text }),
       });
       const data = await res.json();
+      console.log("The reply data", data);
       if (!res.ok) throw new Error(data.message);
 
       if (isReply) {
@@ -110,7 +111,7 @@ const DiscussionThread = ({ parentType, parentId }) => {
       elements.push(
         <div key={comment._id} className={styles.commentCard}>
           <div className={styles.commentHeader}>
-            <strong className={styles.author}>{comment.author.email}</strong>
+            <strong className={styles.author}>{comment.author.username}</strong>
             <span className={styles.date}>
               {new Date(comment.createdAt).toLocaleString()}
             </span>
@@ -152,7 +153,7 @@ const DiscussionThread = ({ parentType, parentId }) => {
             style={{ marginLeft: `${reply.__depth * 16}px` }}
           >
             <div className={styles.commentHeader}>
-              <strong className={styles.author}>{reply.author.email}</strong>
+              <strong className={styles.author}>{reply.author.username}</strong>
               <span className={styles.date}>
                 {new Date(reply.createdAt).toLocaleString()}
               </span>
