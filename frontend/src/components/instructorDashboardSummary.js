@@ -8,7 +8,7 @@ const InstructorControlPanel = () => {
   if (loading) return <p>Loading dashboard...</p>;
   if (!data) return <p>No dashboard data found.</p>;
 
-  const { totals, qaMetrics, perTeamSummaries, recentActivity } = data;
+  const { totals, qaMetrics, perTeamSummaries, alerts } = data;
 
   const chartData = Object.values(perTeamSummaries).map(team => ({
     name: team.teamName,
@@ -36,6 +36,10 @@ const InstructorControlPanel = () => {
           <h4>Bugs</h4>
           <p>{totals.bugs}</p>
         </div>
+        <div className={styles.card}>
+          <h4>Tests Designed</h4>
+          <p>{qaMetrics.testsDesigned}</p>
+        </div>
       </div>
 
       {/* Chart */}
@@ -52,16 +56,20 @@ const InstructorControlPanel = () => {
         </BarChart>
       </div>
 
-      {/* Recent Activity */}
-      <div className={styles.activitySection}>
-        <h3>Recent Activity</h3>
-        <ul>
-          {recentActivity.map((item, idx) => (
-            <li key={idx}>
-              <span className={styles.type}>{item.type}</span> - {item.title} ({item.team})
-            </li>
-          ))}
-        </ul>
+      {/* Alerts */}
+      <div className={styles.alertsSection}>
+        <h3>Team Alerts</h3>
+        {alerts && alerts.length > 0 ? (
+          <ul>
+            {alerts.map((alert, idx) => (
+              <li key={idx} className={styles[`alert_${alert.type}`]}>
+                <strong>{alert.team}</strong> - {alert.type} (value: {alert.value})
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No alerts at this time ✅</p>
+        )}
       </div>
     </div>
   );

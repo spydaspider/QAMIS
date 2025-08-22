@@ -3,6 +3,7 @@ const User = require('../models/user');
 const Experiment = require('../models/experiments');
 const Bug = require('../models/logBug');
 const QAReport = require('../models/downloadableReport.js');
+const TestCase = require('../models/testCase'); // <-- add testCases model
 const { generateAndSaveQAReports } = require('../services/qAReportService'); // <- shared generator
 
 const InstructorDashboardSummary = async (req, res) => {
@@ -16,32 +17,21 @@ const InstructorDashboardSummary = async (req, res) => {
       userCountRes,
       experimentCountRes,
       bugCountRes,
-      perTeamLatestTwoRes,
-      recentBugsRes,
-      recentExperimentsRes
+      testCasesCountRes, // <-- new
+      perTeamLatestTwoRes
     ] = await Promise.allSettled([
       Team.countDocuments(),
       User.countDocuments(),
       Experiment.countDocuments(),
       Bug.countDocuments(),
+      TestCase.countDocuments(), // <-- count test cases
 
       // aggregate: sort newest-first, group by teamName and take first 2
       QAReport.aggregate([
         { $sort: { generatedAt: -1 } },
         { $group: { _id: "$teamName", reports: { $push: "$$ROOT" } } },
         { $project: { teamName: "$_id", reports: { $slice: ["$reports", 2] } } }
-      ]),
-
-      // explicitly populate team with model + teamName
-      Bug.find()
-        .sort({ createdAt: -1 })
-        .limit(3)
-        .populate({ path: 'team', model: 'Team', select: 'teamName' }),
-
-      Experiment.find()
-        .sort({ createdAt: -1 })
-        .limit(3)
-        .populate({ path: 'team', model: 'Team', select: 'teamName' })
+      ])
     ]);
 
     // unwrap helper
@@ -55,9 +45,8 @@ const InstructorDashboardSummary = async (req, res) => {
     const userCount = unwrap(userCountRes, 'User.countDocuments', 0);
     const experimentCount = unwrap(experimentCountRes, 'Experiment.countDocuments', 0);
     const bugCount = unwrap(bugCountRes, 'Bug.countDocuments', 0);
+    const testCasesCount = unwrap(testCasesCountRes, 'TestCase.countDocuments', 0); // <-- unwrap
     const perTeamLatestTwo = unwrap(perTeamLatestTwoRes, 'QAReport.aggregate(perTeamLatestTwo)', []);
-    const recentBugs = unwrap(recentBugsRes, 'Bug.find (recent)', []);
-    const recentExperiments = unwrap(recentExperimentsRes, 'Experiment.find (recent)', []);
 
     // Flatten all the picked reports
     const combinedReports = (perTeamLatestTwo || []).flatMap(p =>
@@ -74,7 +63,7 @@ const InstructorDashboardSummary = async (req, res) => {
       const reports = p.reports || [];
 
       const summary = reports.reduce((acc, doc) => {
-        acc.testsDesigned += (doc.testsDesigned ?? 0);
+        // acc.testsDesigned += (doc.testsDesigned ?? 0); // <-- remove this line
         acc.testsExecuted += (doc.testsExecuted ?? 0);
         acc.openDefects += (doc.newDefects ?? 0);
         acc.closedDefects += (doc.defectsClosed ?? doc.closedDefects ?? 0);
@@ -86,7 +75,7 @@ const InstructorDashboardSummary = async (req, res) => {
         acc.count += 1;
         return acc;
       }, {
-        testsDesigned: 0, testsExecuted: 0, openDefects: 0, closedDefects: 0,
+        testsExecuted: 0, openDefects: 0, closedDefects: 0,
         passRateWeightedNumerator: 0, passRateWeightDenom: 0, testCoverageSum: 0,
         severityCritical: 0, severityHigh: 0, count: 0
       });
@@ -98,7 +87,7 @@ const InstructorDashboardSummary = async (req, res) => {
       perTeamSummaries[teamName] = {
         teamName,
         reportsCount: summary.count,
-        testsDesigned: summary.testsDesigned,
+        testsDesigned: testCasesCount, // <-- use testCases count
         testsExecuted: summary.testsExecuted,
         openDefects: summary.openDefects,
         closedDefects: summary.closedDefects,
@@ -111,7 +100,7 @@ const InstructorDashboardSummary = async (req, res) => {
 
     // Build overall (across all teams' two latest reports)
     const overall = combinedReports.reduce((acc, doc) => {
-      acc.testsDesigned += (doc.testsDesigned ?? 0);
+      // acc.testsDesigned += (doc.testsDesigned ?? 0); // <-- remove this line
       acc.testsExecuted += (doc.testsExecuted ?? 0);
       acc.openDefects += (doc.newDefects ?? 0);
       acc.closedDefects += (doc.defectsClosed ?? doc.closedDefects ?? 0);
@@ -120,7 +109,7 @@ const InstructorDashboardSummary = async (req, res) => {
       acc.testCoverageSum += (doc.testCoverage ?? 0);
       acc.count += 1;
       return acc;
-    }, { testsDesigned: 0, testsExecuted: 0, openDefects: 0, closedDefects: 0, passRateWeightedNumerator: 0, passRateWeightDenom: 0, testCoverageSum: 0, count: 0 });
+    }, { testsExecuted: 0, openDefects: 0, closedDefects: 0, passRateWeightedNumerator: 0, passRateWeightDenom: 0, testCoverageSum: 0, count: 0 });
 
     const overallPassRate = overall.passRateWeightDenom > 0
       ? (overall.passRateWeightedNumerator / overall.passRateWeightDenom)
@@ -128,36 +117,13 @@ const InstructorDashboardSummary = async (req, res) => {
 
     const qaMetrics = {
       reportsConsidered: overall.count,
-      testsDesigned: overall.testsDesigned,
+      testsDesigned: testCasesCount, // <-- use testCases count
       testsExecuted: overall.testsExecuted,
       passRate: Number((overallPassRate || 0).toFixed(2)),
       testCoverage: overall.count ? Number((overall.testCoverageSum / overall.count).toFixed(2)) : 0,
       openDefects: overall.openDefects,
       closedDefects: overall.closedDefects
     };
-
-    // recent activity (merge bugs + experiments sorted by createdAt)
-    const recentActivity = [
-      ...recentBugs.map(b => ({
-        type: 'bug',
-        title: b.title || 'Untitled bug',
-        team: typeof b.team === 'object' && b.team?.teamName
-          ? b.team.teamName
-          : (b.team?.toString?.() || 'Unknown'),
-        createdAt: b.createdAt || b._id?.getTimestamp?.() || null
-      })),
-      ...recentExperiments.map(e => ({
-        type: 'experiment',
-        title: e.title || 'Untitled experiment',
-        team: typeof e.team === 'object' && e.team?.teamName
-          ? e.team.teamName
-          : (e.team?.toString?.() || 'Unknown'),
-        createdAt: e.createdAt || e._id?.getTimestamp?.() || null
-      }))
-    ]
-      .filter(x => x.createdAt)
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, 5);
 
     // Build alerts
     const alerts = [];
@@ -178,7 +144,6 @@ const InstructorDashboardSummary = async (req, res) => {
       },
       qaMetrics,
       perTeamSummaries,
-      recentActivity,
       alerts
     });
   } catch (err) {

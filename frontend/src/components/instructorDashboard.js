@@ -15,6 +15,9 @@ import ExperimentManagement from './experiments';
 import ManageTestCases from './testCase';
 import PerformanceMetrics from './performanceMetrics';
 import DownloadQAReport from './downloadableReport';
+import BugList from './myBugs.js';
+import TestCaseList from './myTestCases.js';
+
 
 const InstructorDashboard = () =>{
    
@@ -23,14 +26,19 @@ const badges = [
   { name: 'Dashboard',             icon: dashboardIcon },
    { name: 'Experiments',             icon: testCaseIcon },
   { name: 'Groups',                icon: groupsIcon    },
-  { name: 'QAReports',             icon: reportsIcon        },
+  { name: 'Test Case',              icon: testCaseIcon   },
+    { name: 'Performance Metrics',           icon: submissionsIcon},
+
   { name: 'LeaderBoard',           icon: leaderBoardIcon },
-  { name: 'Performance Metrics',           icon: submissionsIcon},
+  {name: 'Bugs Discussion', icon: groupsIcon},
+  {name: 'Test Case Discussion', icon: groupsIcon},
+    { name: 'QAReports',             icon: reportsIcon        },
+
 /*   { name: 'Alerts & Notifications', icon: alertsIcon    },
  *//*   { name: 'Milestones',            icon: milestonesIcon },
  */ 
 /*  { name: 'Resources',             icon: resourcesIcon  },
- */  { name: 'TestCase',              icon: testCaseIcon   },
+ */  
 ];
     const message = "Instructor Dashboard";
     const [selectedBadge, setSelectedBadge] = useState("Dashboard");
@@ -40,7 +48,8 @@ const badges = [
     const [showManageTestCase, setShowManageTestCase] = useState(false);
     const [showPerformanceMetrics, setShowPerformanceMetrics] = useState(false);
     const [showQAReports, setShowQAReports] = useState(false);
-    
+    const [showBugsDiscussion, setShowBugsDiscussion] = useState(false);
+    const [showTestCaseDiscussion, setShowTestCaseDiscussion] = useState(false);
    
 
   // Handle button click to update the selected state
@@ -53,7 +62,10 @@ const badges = [
         setShowExperimentManagement(false);
         setShowManageTestCase(false);
         setShowPerformanceMetrics(false);
-                        setShowQAReports(false);
+        setShowQAReports(false);
+        setShowBugsDiscussion(false);
+        setShowTestCaseDiscussion(false);
+
 
 
       }
@@ -64,60 +76,98 @@ const badges = [
         setShowExperimentManagement(true);
         setShowManageTestCase(false);
         setShowPerformanceMetrics(false);
-                        setShowQAReports(false);
+        setShowQAReports(false);
+        setShowBugsDiscussion(false);
+        setShowTestCaseDiscussion(false);
+
 
 
 
       }
       else if(badge === 'Groups')
       {
-          setShowInstructorMetricsView(false);
+        setShowInstructorMetricsView(false);
         setShowInstructorGroups(true);
         setShowExperimentManagement(false);
         setShowManageTestCase(false);
         setShowPerformanceMetrics(false);
-                        setShowQAReports(false);
+        setShowQAReports(false);
+        setShowBugsDiscussion(false);
+        setShowTestCaseDiscussion(false);
+
+
 
 
       }
-      else if(badge === 'TestCase')
+      else if(badge === 'Test Case')
       {
-          setShowInstructorMetricsView(false);
+        setShowInstructorMetricsView(false);
         setShowInstructorGroups(false);
         setShowExperimentManagement(false);
         setShowManageTestCase(true);
         setShowPerformanceMetrics(false);
-                        setShowQAReports(false);
+        setShowQAReports(false);
+        setShowBugsDiscussion(false);
+        setShowTestCaseDiscussion(false);
+
+
 
 
         
       }
       else if(badge === 'Performance Metrics')
       {
-         setShowInstructorMetricsView(false);
+        setShowInstructorMetricsView(false);
         setShowInstructorGroups(false);
         setShowExperimentManagement(false);
         setShowManageTestCase(false);
         setShowPerformanceMetrics(true);
-                setShowQAReports(false);
+        setShowQAReports(false);
+        setShowBugsDiscussion(false);
+        setShowTestCaseDiscussion(false);
+
+
 
       }
       else if(badge === 'QAReports')
       {
-         setShowInstructorMetricsView(false);
+        setShowInstructorMetricsView(false);
         setShowInstructorGroups(false);
         setShowExperimentManagement(false);
         setShowManageTestCase(false);
         setShowPerformanceMetrics(false);
         setShowQAReports(true);
+        setShowBugsDiscussion(false);
+        setShowTestCaseDiscussion(false);
+
+
 
       }
-     /* else{
-        setShowDashBoard(false);
-        setShowRestaurants(false);
-        setShowReviews(false);
-        setShowUsers(true);
-      } */
+      else if(badge === 'Bugs Discussion')
+      {
+        setShowInstructorMetricsView(false);
+        setShowInstructorGroups(false);
+        setShowExperimentManagement(false);
+        setShowManageTestCase(false);
+        setShowPerformanceMetrics(false);
+        setShowQAReports(false);
+        setShowBugsDiscussion(true);
+        setShowTestCaseDiscussion(false);
+
+      }
+      else if(badge === 'Test Case Discussion')
+      {
+        setShowInstructorMetricsView(false);
+        setShowInstructorGroups(false);
+        setShowExperimentManagement(false);
+        setShowManageTestCase(false);
+        setShowPerformanceMetrics(false);
+        setShowQAReports(false);
+        setShowBugsDiscussion(false);
+        setShowTestCaseDiscussion(true);
+
+      }
+    
   };
 
      return(
@@ -148,6 +198,8 @@ const badges = [
                {showManageTestCase && <ManageTestCases/>}
                {showPerformanceMetrics && <PerformanceMetrics/>}
                {showQAReports && <DownloadQAReport/>}
+               {showBugsDiscussion && <BugList/>}
+               {showTestCaseDiscussion && <TestCaseList/>}
              {/*} {showRestaurants && <RestaurantsAndBars restaurants ={restaurants} handleRefetchData = {handleRefetchData }  />}
               {showReviews && <AdminReviews reviews={reviews}  handleRefetchData = {handleRefetchData } />}
               {showUsers && <AdminUsers  users = {users} handleRefetchData = {handleRefetchData } />}
