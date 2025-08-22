@@ -11,10 +11,10 @@ const createTestCase = async (req, res) => {
 
     // Populate before returning
     const populated = await TestCase.findById(testCase._id)
-      .populate('author', 'name email')
+      .populate('author', 'name email username')
       .populate('assignedTeams', 'name')
       .populate('executions.team', 'name')
-      .populate('executions.executedBy', 'name');
+      .populate('executions.executedBy', 'name email username');
 
     res.status(201).json(populated);
   } catch (err) {
@@ -32,10 +32,10 @@ const updateTestCase = async (req, res) => {
 
     // Update and populate
     const updated = await TestCase.findByIdAndUpdate(id, updates, options)
-      .populate('author', 'name email')
+      .populate('author', 'name email username')
       .populate('assignedTeams', 'name')
       .populate('executions.team', 'name')
-      .populate('executions.executedBy', 'name');
+      .populate('executions.executedBy', 'name email username');
 
     if (!updated) {
       return res.status(404).json({ error: 'TestCase not found' });
@@ -48,7 +48,6 @@ const updateTestCase = async (req, res) => {
   }
 };
 
-
 // Get all test cases (optionally filter by team or author)
 const getAllTestCases = async (req, res) => {
   try {
@@ -58,10 +57,10 @@ const getAllTestCases = async (req, res) => {
     if (authorId) filter.author = authorId;
 
     const testCases = await TestCase.find(filter)
-      .populate('author', 'name email')
+      .populate('author', 'name email username')
       .populate('assignedTeams', 'name')
       .populate('executions.team', 'name')
-      .populate('executions.executedBy', 'name')
+      .populate('executions.executedBy', 'name email username')
       .sort({ createdAt: -1 });
 
     res.json(testCases);
@@ -76,10 +75,10 @@ const getTestCaseById = async (req, res) => {
   try {
     const { id } = req.params;
     const testCase = await TestCase.findById(id)
-      .populate('author', 'name email')
+      .populate('author', 'name email username')
       .populate('assignedTeams', 'name')
       .populate('executions.team', 'name')
-      .populate('executions.executedBy', 'name');
+      .populate('executions.executedBy', 'name email username');
     if (!testCase) return res.status(404).json({ error: 'TestCase not found' });
     res.json(testCase);
   } catch (err) {
@@ -87,8 +86,6 @@ const getTestCaseById = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
-
 
 // Delete a test case
 const deleteTestCase = async (req, res) => {
@@ -121,8 +118,15 @@ const addExecution = async (req, res) => {
     testCase.executions.push({ team, executedBy, status, actualResult, comments });
     await testCase.save();
 
-    // Return the newly added execution
-    const newExec = testCase.executions[testCase.executions.length - 1];
+    // Repopulate executions with usernames
+    const populated = await TestCase.findById(id)
+      .populate('author', 'name email username')
+      .populate('assignedTeams', 'name')
+      .populate('executions.team', 'name')
+      .populate('executions.executedBy', 'name email username');
+
+    // Return the last execution with populated fields
+    const newExec = populated.executions[populated.executions.length - 1];
     res.status(201).json(newExec);
   } catch (err) {
     console.error(err);
@@ -135,10 +139,10 @@ const getTestCasesByTeam = async (req, res) => {
   try {
     const { teamId } = req.params;
     const testCases = await TestCase.find({ assignedTeams: teamId })
-      .populate('author', 'name email')
+      .populate('author', 'name email username')
       .populate('assignedTeams', 'name')
       .populate('executions.team', 'name')
-      .populate('executions.executedBy', 'name');
+      .populate('executions.executedBy', 'name email username');
     res.json(testCases);
   } catch (err) {
     console.error(err);
@@ -157,7 +161,15 @@ const removeExecution = async (req, res) => {
     }
     testCase.executions.splice(execIndex, 1);
     await testCase.save();
-    res.json({ message: 'Execution removed' });
+
+    // Return updated testcase with usernames
+    const populated = await TestCase.findById(id)
+      .populate('author', 'name email username')
+      .populate('assignedTeams', 'name')
+      .populate('executions.team', 'name')
+      .populate('executions.executedBy', 'name email username');
+
+    res.json(populated);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
