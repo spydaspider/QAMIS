@@ -10,6 +10,7 @@ import ManageSprints from './sprintManagement.js';
 import TestCaseExecution from './testCaseExecution.js';
 import BugList from './myBugs.js';
 import TestCaseList from './myTestCases.js';
+import TeamDashboardSummary from './teamDashboardSummary.js';
 
 
 const StudentDashboard = () =>{
@@ -30,6 +31,7 @@ const badges = [
     const [showTestCaseExecution, setShowTestCaseExecution] = useState(false);
     const [showMyBugs, setShowMyBugs] = useState(false);
     const [showMyTestCases,setshowMyTestCases] = useState(false);
+    const [showDashboard, setShowDashboard] = useState(true);
   // Handle button click to update the selected state
   const handleBadgeClick = (badge) => {
     setSelectedBadge(badge);
@@ -39,17 +41,21 @@ const badges = [
         setShowSprints(false);
         setShowTestCaseExecution(false);
         setShowMyBugs(false);
-               setshowMyTestCases(false);
+        setshowMyTestCases(false);
+        setShowDashboard(false);
+
 
       }
      
       else if(badge === 'Test Case Execution')
       {
-        setShowLogBug(false);
+       setShowLogBug(false);
        setShowSprints(false);
        setShowTestCaseExecution(true);
        setShowMyBugs(false);
-              setshowMyTestCases(false);
+       setshowMyTestCases(false);
+       setShowDashboard(false);
+
 
        
       }
@@ -60,15 +66,28 @@ const badges = [
        setShowTestCaseExecution(false);
        setShowMyBugs(true);
        setshowMyTestCases(false);
+       setShowDashboard(false);
+
 
       }
       else if(badge === "Test Case Discussion")
         {
-            setShowLogBug(false);
+       setShowLogBug(false);
        setShowSprints(false);
        setShowTestCaseExecution(false);
        setShowMyBugs(false);
        setshowMyTestCases(true);
+       setShowDashboard(false);
+
+        }
+        else if(badge === "Dashboard")
+        {
+       setShowLogBug(false);
+       setShowSprints(false);
+       setShowTestCaseExecution(false);
+       setShowMyBugs(false);
+       setshowMyTestCases(false);
+       setShowDashboard(true);
         }
 
       
@@ -111,7 +130,7 @@ const badges = [
               {showTestCaseExecution && <TestCaseExecution/>}
               {showMyBugs && <BugList/>}
               {showMyTestCases && <TestCaseList/>}
-              
+              {showDashboard && <TeamDashboardSummary/>}
             </div>
             
         </div>

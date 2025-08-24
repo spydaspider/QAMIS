@@ -1,0 +1,38 @@
+.container {
+  padding: 20px;
+  grid-column: 3/-1;
+  overflow-y: auto;
+}
+
+.summaryCards {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 15px;
+  flex: 1;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.chartSection {
+  margin-top: 30px;
+  background: #fff;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.alertsSection {
+  margin-top: 30px;
+}
+
+.alert_lowPassRate { color: red; }
+.alert_highDefects { color: darkorange; }
+.alert_lowCoverage { color: purple; }
+.alert_criticalSeverity { color: crimson; }
+.alert_highSeverity { color: goldenrod; }
