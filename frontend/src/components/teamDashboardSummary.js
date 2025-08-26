@@ -8,35 +8,42 @@ const TeamDashboardSummary = () => {
   if (loading) return <p>Loading team dashboard...</p>;
   if (!data) return <p>No team dashboard data available.</p>;
 
-  const { team, totals, qaMetrics, alerts } = data;
+  // Destructure with safe defaults
+  const { 
+    team = {}, 
+    totals = {}, 
+    qaMetrics = {}, 
+    alerts = [] 
+  } = data;
 
+  // Chart data with nullish coalescing
   const chartData = [
-    { name: "Tests Executed", value: qaMetrics.testsExecuted },
-    { name: "Pass Rate %", value: qaMetrics.passRate },
-    { name: "Coverage %", value: qaMetrics.avgTestCoverage },
-    { name: "Open Defects", value: qaMetrics.openDefects },
-    { name: "Closed Defects", value: qaMetrics.closedDefects },
-    { name: "Critical Sev", value: qaMetrics.severityCritical },
-    { name: "High Sev", value: qaMetrics.severityHigh },
+    { name: "Tests Executed", value: qaMetrics.testsExecuted ?? 0 },
+    { name: "Pass Rate %", value: qaMetrics.passRate ?? 0 },
+    { name: "Coverage %", value: qaMetrics.avgTestCoverage ?? 0 },
+    { name: "Open Defects", value: qaMetrics.openDefects ?? 0 },
+    { name: "Closed Defects", value: qaMetrics.closedDefects ?? 0 },
+    { name: "Critical Sev", value: qaMetrics.severityCritical ?? 0 },
+    { name: "High Sev", value: qaMetrics.severityHigh ?? 0 },
   ];
 
   return (
     <div className={styles.container}>
-      <h2>{team.name} Dashboard</h2>
+      <h2>{team.name ?? "Unnamed Team"} Dashboard</h2>
 
       {/* Summary Cards */}
       <div className={styles.summaryCards}>
         <div className={styles.card}>
           <h4>Bugs</h4>
-          <p>{totals.bugs}</p>
+          <p>{totals.bugs ?? 0}</p>
         </div>
         <div className={styles.card}>
           <h4>Tests Designed</h4>
-          <p>{totals.testsDesigned}</p>
+          <p>{totals.testsDesigned ?? 0}</p>
         </div>
         <div className={styles.card}>
           <h4>Reports Considered</h4>
-          <p>{totals.reportsConsidered}</p>
+          <p>{totals.reportsConsidered ?? 0}</p>
         </div>
       </div>
 
@@ -56,16 +63,16 @@ const TeamDashboardSummary = () => {
       {/* Alerts */}
       <div className={styles.alertsSection}>
         <h3>Team Alerts</h3>
-        {alerts && alerts.length > 0 ? (
+        {alerts.length > 0 ? (
           <ul>
             {alerts.map((alert, idx) => (
-              <li key={idx} className={styles[`alert_${alert.type}`]}>
-                ⚠ {alert.type} (value: {alert.value})
+              <li key={idx} className={styles[`alert_${alert.type}`] || styles.alert_default}>
+                ⚠ {alert.type ?? "Unknown"} (value: {alert.value ?? "N/A"})
               </li>
             ))}
           </ul>
         ) : (
-          <p>No alerts at this time </p>
+          <p>No alerts at this time</p>
         )}
       </div>
     </div>
