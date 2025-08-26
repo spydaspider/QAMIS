@@ -1,11 +1,12 @@
 import styles from "./teamDashboardSummary.module.css";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { useTeamDashboard } from "../context/teamDashboardSummaryContext";
+import Loader from "./loader";
 
 const TeamDashboardSummary = () => {
   const { data, loading } = useTeamDashboard();
 
-  if (loading) return <p>Loading team dashboard...</p>;
+  if (loading) return <Loader/>;
   if (!data) return <p>No team dashboard data available.</p>;
 
   // Destructure with safe defaults
