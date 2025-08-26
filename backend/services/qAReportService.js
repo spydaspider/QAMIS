@@ -17,16 +17,11 @@ async function generateAndSaveQAReports() {
     processedTeamNames.push(teamName);
     const experiment = team.experiment;
 
-    let latestMetrics = await PerformanceMetrics
-      .findOne({ team: teamId })
-      .sort({ generatedAt: -1 });
-
-    const defectDensity = latestMetrics?.defectDensity || 0;
-
     const users = await User.find({ _id: { $in: team.students } });
     const userIds = users.map(u => u._id);
 
     const bugs = await Bug.find({ reporter: { $in: userIds } });
+    const newDefects = bugs.length;
     const defectsClosed = bugs.filter(b => ['closed', 'resolved'].includes(b.currentStatus)).length;
 
     const severityCount = { critical: 0, high: 0, medium: 0, low: 0 };
@@ -51,14 +46,26 @@ async function generateAndSaveQAReports() {
     });
 
     const testsExecuted = passCount + failCount;
+
+    // --- ✅ Defect density per 1000 test cases ---
+    const defectDensity = testsExecuted > 0
+      ? (newDefects / testsExecuted) * 1000
+      : 0;
+
     const passRate = testsExecuted ? (passCount / testsExecuted) * 100 : 0;
     let testCoverage = testsDesigned ? (testsExecuted / testsDesigned) * 100 : 0;
     testCoverage = Math.min(testCoverage, 100);
     testCoverage = Number(testCoverage.toFixed(2));
     const passRateNum = Number(passRate.toFixed(2));
 
+    // --- update or create performance metrics ---
+    let latestMetrics = await PerformanceMetrics
+      .findOne({ team: teamId })
+      .sort({ generatedAt: -1 });
+
     if (latestMetrics) {
       latestMetrics.testCoverage = testCoverage;
+      latestMetrics.defectDensity = defectDensity; // per 1000
       await latestMetrics.save();
     } else {
       latestMetrics = new PerformanceMetrics({ team: teamId, testCoverage, defectDensity });
@@ -75,9 +82,9 @@ async function generateAndSaveQAReports() {
       passCount,
       failCount,
       passRate: passRateNum,
-      newDefects: bugs.length,
+      newDefects,
       defectsClosed,
-      defectDensity,
+      defectDensity,   // per 1000 test cases
       severityCritical: severityCount.critical,
       severityHigh: severityCount.high,
       severityMedium: severityCount.medium,
