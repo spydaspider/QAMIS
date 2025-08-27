@@ -29,8 +29,8 @@ const badges = [
   { name: 'Test Case',              icon: testCaseIcon   },
     { name: 'Performance Metrics',           icon: submissionsIcon},
 
-  { name: 'LeaderBoard',           icon: leaderBoardIcon },
-  {name: 'Bugs Discussion', icon: groupsIcon},
+/*   { name: 'LeaderBoard',           icon: leaderBoardIcon },
+ */  {name: 'Bugs Discussion', icon: groupsIcon},
   {name: 'Test Case Discussion', icon: groupsIcon},
     { name: 'QAReports',             icon: reportsIcon        },
 
@@ -187,10 +187,7 @@ const badges = [
               </button>
             ))}
                 </div>
-                <div className={styles.down}>
-                     <button>Logout</button>
-                </div>
-
+                
               </div>
                 {showInstructorMetricsView && <InstructorControlPanel/>}
               {showInstructorGroups && <InstructorGroups/>}

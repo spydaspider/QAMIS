@@ -13,6 +13,7 @@ import { PerformanceMetricsProvider } from './context/performanceMetricsContext'
 import { QAReportProvider } from './context/downloadableReportContext';
 import { DashboardProvider } from './context/instructorDashboardSummaryContext';
 import { TeamDashboardProvider } from './context/teamDashboardSummaryContext';
+import { MyTeamPerformanceMetricsProvider } from './context/myTeamPerformanceMetricsContext';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   
@@ -28,7 +29,10 @@ root.render(
                     <QAReportProvider>
                       <DashboardProvider>
                         <TeamDashboardProvider>
-                                <App/>
+                          <MyTeamPerformanceMetricsProvider>
+                            <App/>
+                            </MyTeamPerformanceMetricsProvider>
+                              
 
                         </TeamDashboardProvider>
 

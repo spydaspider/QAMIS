@@ -21,16 +21,16 @@ import { useAuthContext } from '../hooks/useAuthContext';
         <header>
             <div className={styles.navContainer}>
                 <NavLink to="/" className={styles.chowRate}>
-                    <div>QAExperimenta</div>
+                    <div>QAMIS1.0</div>
                     
                 </NavLink>
 
                 <nav className={styles.mainNav}>
-                  <NavLink className={({isActive}) =>(isActive ? styles.activeLink: styles.white)} to ="/"><img alt ="icon"/></NavLink>
+                 {/*  <NavLink className={({isActive}) =>(isActive ? styles.activeLink: styles.white)} to ="/"><img alt ="icon"/></NavLink>
                   <NavLink className={({isActive})=>(isActive ? styles.activeLink : styles.white)} to ="/studentDashBoard">StudentDash</NavLink>
                   <NavLink className={({isActive})=>(isActive ? styles.activeLink: styles.white)} to = "/contact">Contact Us</NavLink>
 
-
+ */}
                   
 
                 </nav>

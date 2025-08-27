@@ -11,6 +11,7 @@ import TestCaseExecution from './testCaseExecution.js';
 import BugList from './myBugs.js';
 import TestCaseList from './myTestCases.js';
 import TeamDashboardSummary from './teamDashboardSummary.js';
+import MyTeamPerformanceMetrics from './myTeamPerformanceMetrics.js';
 
 
 const StudentDashboard = () =>{
@@ -22,6 +23,7 @@ const badges = [
   { name: 'Bugs Discussion',             icon: myBugsIcon       },
   { name: 'Test Case Execution',           icon: leaderBoardIcon },
   { name: 'Test Case Discussion',           icon: discussionIcon},
+  {name: 'Team Performance', icon: discussionIcon},
  
 ];
     const message = "Instructor Dashboard";
@@ -32,6 +34,7 @@ const badges = [
     const [showMyBugs, setShowMyBugs] = useState(false);
     const [showMyTestCases,setshowMyTestCases] = useState(false);
     const [showDashboard, setShowDashboard] = useState(true);
+    const [showTeamPerformance, setShowTeamPerformance] = useState(false);
   // Handle button click to update the selected state
   const handleBadgeClick = (badge) => {
     setSelectedBadge(badge);
@@ -43,6 +46,8 @@ const badges = [
         setShowMyBugs(false);
         setshowMyTestCases(false);
         setShowDashboard(false);
+        setShowTeamPerformance(false);
+
 
 
       }
@@ -55,6 +60,8 @@ const badges = [
        setShowMyBugs(false);
        setshowMyTestCases(false);
        setShowDashboard(false);
+      setShowTeamPerformance(false);
+
 
 
        
@@ -67,6 +74,8 @@ const badges = [
        setShowMyBugs(true);
        setshowMyTestCases(false);
        setShowDashboard(false);
+       setShowTeamPerformance(false);
+
 
 
       }
@@ -78,6 +87,8 @@ const badges = [
        setShowMyBugs(false);
        setshowMyTestCases(true);
        setShowDashboard(false);
+       setShowTeamPerformance(false);
+
 
         }
         else if(badge === "Dashboard")
@@ -88,6 +99,18 @@ const badges = [
        setShowMyBugs(false);
        setshowMyTestCases(false);
        setShowDashboard(true);
+       setShowTeamPerformance(false);
+
+        }
+        else if(badge === "Team Performance")
+        {
+          setShowLogBug(false);
+       setShowSprints(false);
+       setShowTestCaseExecution(false);
+       setShowMyBugs(false);
+       setshowMyTestCases(false);
+       setShowDashboard(false);
+       setShowTeamPerformance(true);
         }
 
       
@@ -131,6 +154,7 @@ const badges = [
               {showMyBugs && <BugList/>}
               {showMyTestCases && <TestCaseList/>}
               {showDashboard && <TeamDashboardSummary/>}
+              {showTeamPerformance && <MyTeamPerformanceMetrics/>}
             </div>
             
         </div>

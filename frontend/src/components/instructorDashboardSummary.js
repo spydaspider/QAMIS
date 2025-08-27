@@ -1,11 +1,12 @@
 import styles from "./instructorDashboardSummary.module.css";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { useDashboard } from "../context/instructorDashboardSummaryContext";
+import Loader from "./loader";
 
 const InstructorControlPanel = () => {
   const { data, loading } = useDashboard();
 
-  if (loading) return <p>Loading dashboard...</p>;
+  if (loading) return <Loader/>;
   if (!data) return <p>No dashboard data found.</p>;
 
   const { totals, qaMetrics, perTeamSummaries, alerts } = data;

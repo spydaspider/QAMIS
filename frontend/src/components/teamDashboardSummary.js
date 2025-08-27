@@ -51,6 +51,7 @@ const TeamDashboardSummary = () => {
       {/* QA Metrics Chart */}
       <div className={styles.chartSection}>
         <h3>QA Metrics</h3>
+        
         <BarChart width={700} height={300} data={chartData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" />
