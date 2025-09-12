@@ -30,7 +30,9 @@ root.render(
                       <DashboardProvider>
                         <TeamDashboardProvider>
                           <MyTeamPerformanceMetricsProvider>
-                            <App/>
+                        
+                              <App/>
+                            
                             </MyTeamPerformanceMetricsProvider>
                               
 

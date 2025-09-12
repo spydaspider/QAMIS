@@ -9,6 +9,9 @@ const TestCaseExecution = () => {
   const { testCases, dispatch } = useTestCasesContext();
   const { user } = useAuthContext();
 
+  // Fallback: parse from localStorage in case user is not in context
+  const localUser = user || JSON.parse(localStorage.getItem('user'));
+
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [error, setError] = useState(null);
   const [execForm, setExecForm] = useState({ status: 'not run', actualResult: '', comments: '' });
@@ -18,16 +21,16 @@ const TestCaseExecution = () => {
 
   // Fetch teams the user belongs to and auto-select
   useEffect(() => {
-    if (!user) return;
+    if (!localUser) return;
     (async () => {
       try {
-        const res = await fetch('/api/teams', { headers: { Authorization: `Bearer ${user.token}` } });
+        const res = await fetch('/api/teams', { headers: { Authorization: `Bearer ${localUser.token}` } });
         const json = await res.json();
 
         if (res.ok && Array.isArray(json.data) && json.data.length) {
           let foundTeam = false;
           for (const team of json.data) {
-            if (team.students.some(s => s._id === user.userId)) {
+            if (team.students.some(s => s._id === localUser.userId)) {
               setSelectedTeam(team._id);
               foundTeam = true;
               break;
@@ -43,17 +46,17 @@ const TestCaseExecution = () => {
         setLoading(false);
       }
     })();
-  }, [user]);
+  }, [localUser]);
 
   // Fetch test cases for the selected team
   useEffect(() => {
-    if (!user || !selectedTeam) return;
+    if (!localUser || !selectedTeam) return;
     setError(null);
 
     (async () => {
       try {
         const res = await fetch(`/api/testCases/team/${selectedTeam}`, {
-          headers: { Authorization: `Bearer ${user.token}` }
+          headers: { Authorization: `Bearer ${localUser.token}` }
         });
         const json = await res.json();
         if (res.ok) {
@@ -67,7 +70,7 @@ const TestCaseExecution = () => {
         setLoading(false);
       }
     })();
-  }, [user, selectedTeam, dispatch]);
+  }, [localUser, selectedTeam, dispatch]);
 
   const handleExecFormChange = e => {
     const { name, value } = e.target;
@@ -79,27 +82,30 @@ const TestCaseExecution = () => {
     try {
       let res, json;
       if (idx === null) {
+        // New execution
         res = await fetch(`/api/testCases/${tcId}/executions`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${user.token}`
+            Authorization: `Bearer ${localUser.token}`
           },
           body: JSON.stringify({
             team: selectedTeam,
-            executedBy: user.userId,
+            executedBy: localUser.userId,
             ...execForm
           })
         });
       } else {
+        // Update existing execution
         const targetCase = testCases.find(tc => tc._id === tcId);
         const updatedExecs = [...targetCase.executions];
         updatedExecs[idx] = { ...updatedExecs[idx], ...execForm, executedAt: new Date() };
+
         res = await fetch(`/api/testCases/${tcId}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${user.token}`
+            Authorization: `Bearer ${localUser.token}`
           },
           body: JSON.stringify({ executions: updatedExecs })
         });
@@ -110,7 +116,7 @@ const TestCaseExecution = () => {
 
       // Refresh list
       const refresh = await fetch(`/api/testCases/team/${selectedTeam}`, {
-        headers: { Authorization: `Bearer ${user.token}` }
+        headers: { Authorization: `Bearer ${localUser.token}` }
       });
       const refreshed = await refresh.json();
       dispatch({ type: 'SET_TESTCASES', payload: refreshed });
@@ -127,14 +133,14 @@ const TestCaseExecution = () => {
     try {
       const res = await fetch(`/api/testCases/${tcId}/executions/${idx}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${user.token}` }
+        headers: { Authorization: `Bearer ${localUser.token}` }
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error);
 
       // Refresh list
       const refresh = await fetch(`/api/testCases/team/${selectedTeam}`, {
-        headers: { Authorization: `Bearer ${user.token}` }
+        headers: { Authorization: `Bearer ${localUser.token}` }
       });
       const refreshed = await refresh.json();
       dispatch({ type: 'SET_TESTCASES', payload: refreshed });
@@ -163,7 +169,7 @@ const TestCaseExecution = () => {
             <h3 className={styles.caseTitle}>{tc.title}</h3>
             <p className={styles.caseDesc}>{tc.description}</p>
 
-            {/* New: Show test case steps */}
+            {/* Show test case steps */}
             {tc.steps && tc.steps.length > 0 && (
               <div className={styles.stepsContainer}>
                 <h4 className={styles.stepsTitle}>Steps:</h4>
@@ -179,19 +185,24 @@ const TestCaseExecution = () => {
               </div>
             )}
 
+            {/* Show executions */}
             <ul className={styles.execList}>
               {tc.executions.map((ex, i) => (
                 <li key={i} className={styles.execItem}>
                   <span>{ex.executedAt && new Date(ex.executedAt).toLocaleString()}</span>
                   <span>{ex.status.toUpperCase()}</span>
                   <span>{ex.actualResult}</span>
-                  <span>{ex.executedBy.name}</span>
+                  <span>
+{/*                     {ex.executedBy?.name || localUser?.name || 'Unknown user'}
+ */}                    {ex.team?.name ? ` (${ex.team.name})` : ''}
+                  </span>
                   <button onClick={() => deleteExecution(tc._id, i)}>Remove</button>
                   <button onClick={() => startEditExec(tc._id, i)}>Edit</button>
                 </li>
               ))}
             </ul>
 
+            {/* Execution form */}
             <div className={styles.execForm}>
               <h4>{editingExec.caseId === tc._id ? 'Update' : 'Add'} Execution</h4>
               <select name="status" value={execForm.status} onChange={handleExecFormChange}>

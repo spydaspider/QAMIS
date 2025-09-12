@@ -33,6 +33,8 @@ const badges = [
  */  {name: 'Bugs Discussion', icon: groupsIcon},
   {name: 'Test Case Discussion', icon: groupsIcon},
     { name: 'QAReports',             icon: reportsIcon        },
+/*         { name: 'Live Discussion',             icon: groupsIcon       },
+ */
 
 /*   { name: 'Alerts & Notifications', icon: alertsIcon    },
  *//*   { name: 'Milestones',            icon: milestonesIcon },
@@ -50,6 +52,7 @@ const badges = [
     const [showQAReports, setShowQAReports] = useState(false);
     const [showBugsDiscussion, setShowBugsDiscussion] = useState(false);
     const [showTestCaseDiscussion, setShowTestCaseDiscussion] = useState(false);
+    const [showLiveDiscussion, setShowLiveDiscussion] = useState(false);
    
 
   // Handle button click to update the selected state
@@ -65,6 +68,8 @@ const badges = [
         setShowQAReports(false);
         setShowBugsDiscussion(false);
         setShowTestCaseDiscussion(false);
+                setShowLiveDiscussion(false);
+
 
 
 
@@ -79,6 +84,8 @@ const badges = [
         setShowQAReports(false);
         setShowBugsDiscussion(false);
         setShowTestCaseDiscussion(false);
+                setShowLiveDiscussion(false);
+
 
 
 
@@ -94,6 +101,8 @@ const badges = [
         setShowQAReports(false);
         setShowBugsDiscussion(false);
         setShowTestCaseDiscussion(false);
+                setShowLiveDiscussion(false);
+
 
 
 
@@ -109,6 +118,8 @@ const badges = [
         setShowQAReports(false);
         setShowBugsDiscussion(false);
         setShowTestCaseDiscussion(false);
+                setShowLiveDiscussion(false);
+
 
 
 
@@ -125,6 +136,8 @@ const badges = [
         setShowQAReports(false);
         setShowBugsDiscussion(false);
         setShowTestCaseDiscussion(false);
+                setShowLiveDiscussion(false);
+
 
 
 
@@ -139,6 +152,8 @@ const badges = [
         setShowQAReports(true);
         setShowBugsDiscussion(false);
         setShowTestCaseDiscussion(false);
+                setShowLiveDiscussion(false);
+
 
 
 
@@ -153,6 +168,8 @@ const badges = [
         setShowQAReports(false);
         setShowBugsDiscussion(true);
         setShowTestCaseDiscussion(false);
+                setShowLiveDiscussion(false);
+
 
       }
       else if(badge === 'Test Case Discussion')
@@ -165,7 +182,24 @@ const badges = [
         setShowQAReports(false);
         setShowBugsDiscussion(false);
         setShowTestCaseDiscussion(true);
+                setShowLiveDiscussion(false);
 
+
+      }
+      else if(badge === 'Live Discussion')
+      {
+      
+        setShowInstructorMetricsView(false);
+        setShowInstructorGroups(false);
+        setShowExperimentManagement(false);
+        setShowManageTestCase(false);
+        setShowPerformanceMetrics(false);
+        setShowQAReports(false);
+        setShowBugsDiscussion(false);
+        setShowTestCaseDiscussion(false);
+        setShowLiveDiscussion(true);
+
+      
       }
     
   };
@@ -197,6 +231,8 @@ const badges = [
                {showQAReports && <DownloadQAReport/>}
                {showBugsDiscussion && <BugList/>}
                {showTestCaseDiscussion && <TestCaseList/>}
+{/*                {showLiveDiscussion && <ChatWindow/>}
+ */}            
              {/*} {showRestaurants && <RestaurantsAndBars restaurants ={restaurants} handleRefetchData = {handleRefetchData }  />}
               {showReviews && <AdminReviews reviews={reviews}  handleRefetchData = {handleRefetchData } />}
               {showUsers && <AdminUsers  users = {users} handleRefetchData = {handleRefetchData } />}
