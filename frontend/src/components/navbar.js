@@ -21,7 +21,7 @@ import { useAuthContext } from '../hooks/useAuthContext';
         <header>
             <div className={styles.navContainer}>
                 <NavLink to="/" className={styles.chowRate}>
-                    <div>QAMIS1.0</div>
+                    <div>QA-EMS1.0</div>
                     
                 </NavLink>
 
@@ -36,7 +36,7 @@ import { useAuthContext } from '../hooks/useAuthContext';
                 </nav>
                
                
-                {user ? <button className={styles.logout}onClick={handleLogout}>logout</button>:<Fragment><NavLink to="/register">Signup</NavLink><NavLink to="/login">login</NavLink></Fragment>}
+                {user ? <button className={styles.logout}onClick={handleLogout}>logout</button>:<Fragment><NavLink to="/register" className={styles.white1}>Signup</NavLink><NavLink to="/login" className={styles.white1}>login</NavLink></Fragment>}
                 
                 
             </div>

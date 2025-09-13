@@ -21,41 +21,40 @@ const LogBug = () => {
   const [teamName, setTeamName] = useState('');
   const [loading, setLoading] = useState(true);
   const [studentNoTeam, setStudentNoTeam] = useState(false);
+  const [reporterName, setReporterName] = useState(null);
 
   // Fetch teams and bugs on mount
   useEffect(() => {
     if (!user) return;
     const userId = JSON.parse(localStorage.getItem('user')).userId;
-    const studentHasTeamCounter = 0;
+    let studentHasTeamCounter = 0;
+
     // fetch all teams and find the one containing this student
     fetch('/api/teams', { headers: { Authorization: `Bearer ${user.token}` } })
       .then(res => res.json())
       .then(data => {
         const teams = data.data || [];
-        
-        const team = teams.find(t => Array.isArray(t.students) && t.students.some(s => s._id === userId));
+        const team = teams.find(
+          t => Array.isArray(t.students) && t.students.some(s => s._id === userId)
+        );
+
         if (team) {
           setTeamId(team._id);
           setTeamName(team.name);
         }
-        for(let i = 0; i < teams.length; i++)
-           {
-            for(let j = 0; j < teams[i].students.length; j++)
-            {
-             if(teams[i].students[j]._id === userId)
-             {
-                       studentHasTeamCounter = 1;
-             } 
-             
+
+        for (let i = 0; i < teams.length; i++) {
+          for (let j = 0; j < teams[i].students.length; j++) {
+            if (teams[i].students[j]._id === userId) {
+              studentHasTeamCounter = 1;
             }
-            
-           }
-          if(studentHasTeamCounter === 0)
-          {
-            setLoading(false);
-            setStudentNoTeam(true);
           }
-        
+        }
+
+        if (studentHasTeamCounter === 0) {
+          setLoading(false);
+          setStudentNoTeam(true);
+        }
       })
       .catch(() => {});
 
@@ -67,8 +66,8 @@ const LogBug = () => {
         const bugsList = allBugs.filter(b => b.reporter._id === userId);
         dispatch({ type: 'SET_BUGS', payload: bugsList });
       })
-      .catch(() => dispatch({ type: 'SET_BUGS', payload: [] })).finally(() => {
-        // stop loading regardless of success/failure
+      .catch(() => dispatch({ type: 'SET_BUGS', payload: [] }))
+      .finally(() => {
         setLoading(false);
       });
   }, [user, dispatch]);
@@ -81,14 +80,19 @@ const LogBug = () => {
   const handleAddStep = () => {
     setForm(prev => ({
       ...prev,
-      reproductionSteps: [...prev.reproductionSteps, { stepNumber: prev.reproductionSteps.length + 1, action: '' }]
+      reproductionSteps: [
+        ...prev.reproductionSteps,
+        { stepNumber: prev.reproductionSteps.length + 1, action: '' }
+      ]
     }));
   };
 
   const handleStepChange = (idx, val) => {
     setForm(prev => ({
       ...prev,
-      reproductionSteps: prev.reproductionSteps.map((s, i) => (i === idx ? { ...s, action: val } : s))
+      reproductionSteps: prev.reproductionSteps.map((s, i) =>
+        i === idx ? { ...s, action: val } : s
+      )
     }));
   };
 
@@ -104,6 +108,7 @@ const LogBug = () => {
   const handleSubmit = async e => {
     e.preventDefault();
     setError(null);
+
     if (!teamId) {
       setError('Cannot determine your team. Please contact your instructor.');
       return;
@@ -132,12 +137,30 @@ const LogBug = () => {
       const method = editingId ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user.token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user.token}`
+        },
         body: JSON.stringify(payload)
       });
       const json = await res.json();
+      setReporterName(json.reporter.username);
       if (!res.ok) throw new Error(json.error || 'Failed to save bug');
-      dispatch({ type: editingId ? 'UPDATE_BUG' : 'CREATE_BUG', payload: json });
+
+      //  Patch reporter so UI shows immediately
+      dispatch({
+        type: editingId ? 'UPDATE_BUG' : 'CREATE_BUG',
+        payload: {
+          ...json,
+          reporter: {
+            ...(json.reporter || {}),
+            _id: user.userId,
+            username: user.username,
+            email: user.email
+          }
+        }
+      });
+
       setForm({ title: '', description: '', severity: 'medium', reproductionSteps: [] });
       setEditingId(null);
     } catch (err) {
@@ -150,7 +173,10 @@ const LogBug = () => {
     try {
       const res = await fetch(`/api/logBug/${bugId}/status`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user.token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user.token}`
+        },
         body: JSON.stringify({ status: newStatus, comment: '' })
       });
       const updated = await res.json();
@@ -189,14 +215,19 @@ const LogBug = () => {
     });
     setError(null);
   };
-    if(studentNoTeam) return <h1 className={styles.gridText}>You are not assigned to a team yet. Speak to instructor</h1>
-    if(loading) return <Loader/>
+
+  if (studentNoTeam)
+    return <h1 className={styles.gridText}>You are not assigned to a team yet. Speak to instructor</h1>;
+  if (loading) return <Loader />;
+
   return (
     <div className={styles.container}>
       {error && <div className={styles.error}>{error}</div>}
       <h2 className={styles.title}>{editingId ? 'Update Bug' : 'Log Bug'}</h2>
       {teamId ? (
-        <div className={styles.teamInfo}><strong>Team:</strong> {teamName}</div>
+        <div className={styles.teamInfo}>
+          <strong>Team:</strong> {teamName}
+        </div>
       ) : (
         <div className={styles.teamMissing}>Team not yet determined</div>
       )}
@@ -219,9 +250,25 @@ const LogBug = () => {
                   <option value="resolved">Resolved</option>
                   <option value="closed">Closed</option>
                 </select>
-                <button className={styles.removeBtn} onClick={() => handleDelete(bug._id)}>×</button>
-                <button className={styles.addStepBtn} onClick={() => handleEdit(bug)}>Edit</button>
+                <button
+                  className={styles.removeBtn}
+                  onClick={() => handleDelete(bug._id)}
+                >
+                  ×
+                </button>
+                <button
+                  className={styles.addStepBtn}
+                  onClick={() => handleEdit(bug)}
+                >
+                  Edit
+                </button>
               </div>
+
+              {/*  Reporter info */}
+              <p>
+                <strong>Reported by:</strong> {bug.reporter?.username || reporterName || 'Unknown'}
+              </p>
+
               <p>{bug.description}</p>
               <small>Severity: {bug.severity}</small>
               {bug.reproductionSteps.length > 0 && (
@@ -302,4 +349,3 @@ const LogBug = () => {
 };
 
 export default LogBug;
-//original

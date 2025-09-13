@@ -1,3 +1,4 @@
+// controllers/logBug.js
 const BugModel = require('../models/logBug.js');
 
 /** Create a new bug report */
@@ -8,6 +9,10 @@ async function createBug(req, res) {
       reporter: req.user._id
     });
     await bug.save();
+
+    // ✅ populate reporter + team before sending back
+    await bug.populate('reporter team');
+
     res.status(201).json(bug);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -20,7 +25,11 @@ async function getBugs(req, res) {
     const filter = {};
     if (req.query.status) filter.currentStatus = req.query.status;
     if (req.query.team) filter.team = req.query.team;
-    const bugs = await BugModel.find(filter).populate('reporter team').exec();
+
+    const bugs = await BugModel.find(filter)
+      .populate('reporter team')
+      .exec();
+
     res.json(bugs);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -33,6 +42,7 @@ async function getBugById(req, res) {
     const bug = await BugModel.findById(req.params.id)
       .populate('reporter team statusHistory.changedBy')
       .exec();
+
     if (!bug) return res.status(404).json({ error: 'Bug not found' });
     res.json(bug);
   } catch (err) {
@@ -45,7 +55,11 @@ async function updateBug(req, res) {
   try {
     const updates = { ...req.body };
     delete updates.currentStatus;
-    const bug = await BugModel.findByIdAndUpdate(req.params.id, updates, { new: true }).exec();
+
+    const bug = await BugModel.findByIdAndUpdate(req.params.id, updates, { new: true })
+      .populate('reporter team')
+      .exec();
+
     if (!bug) return res.status(404).json({ error: 'Bug not found' });
     res.json(bug);
   } catch (err) {
@@ -58,6 +72,7 @@ async function changeBugStatus(req, res) {
   try {
     const { status, comment } = req.body;
     const bug = await BugModel.findById(req.params.id);
+
     if (!bug) return res.status(404).json({ error: 'Bug not found' });
 
     // Attach metadata for middleware
@@ -66,6 +81,10 @@ async function changeBugStatus(req, res) {
     bug.currentStatus = status;
 
     await bug.save();
+
+    // ✅ populate before returning
+    await bug.populate('reporter team statusHistory.changedBy');
+
     res.json(bug);
   } catch (err) {
     res.status(400).json({ error: err.message });
