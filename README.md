@@ -4,7 +4,9 @@ A web application designed for gathering Software Quality Assurance Metrics in c
 
 ## Platform
 - Web (Cross-platform)
-
+##Demo
+https://youtu.be/Nk_6jYm7EUA
+https://youtu.be/wdp7KQSV_JA
 ## Tech Stack
 - React
 - JavaScript
