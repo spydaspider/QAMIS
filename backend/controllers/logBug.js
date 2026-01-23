@@ -4,13 +4,45 @@ const BugModel = require('../models/logBug.js');
 /** Create a new bug report */
 async function createBug(req, res) {
   try {
+    console.log('REQ.BODY:', req.body);
+    console.log('REQ.FILES:', req.files);
+
+    const {
+      title,
+      description,
+      reproductionSteps,
+      severity,
+      team
+    } = req.body;
+
+    if (!title || !description || !reproductionSteps || !team) {
+      throw new Error('Required fields are missing');
+    }
+
+    // Parse reproduction steps (FormData sends strings)
+    const parsedSteps =
+      typeof reproductionSteps === 'string'
+        ? JSON.parse(reproductionSteps)
+        : reproductionSteps;
+
+    // Map uploaded screenshots (Cloudinary URLs)
+    const screenshots = req.files
+      ? req.files.map(file => ({
+          imageUrl: file.path   // Cloudinary URL
+        }))
+      : [];
+
     const bug = new BugModel({
-      ...req.body,
+      title,
+      description,
+      reproductionSteps: parsedSteps,
+      severity,
+      team,
+      screenshots,
       reporter: req.user._id
     });
-    await bug.save();
 
-    // ✅ populate reporter + team before sending back
+    await bug.save();
     await bug.populate('reporter team');
 
     res.status(201).json(bug);
@@ -19,7 +51,7 @@ async function createBug(req, res) {
   }
 }
 
-/** Get all bugs (optionally filter by status or team) */
+/** Everything else stays the same */
 async function getBugs(req, res) {
   try {
     const filter = {};
@@ -36,7 +68,6 @@ async function getBugs(req, res) {
   }
 }
 
-/** Get a single bug by ID */
 async function getBugById(req, res) {
   try {
     const bug = await BugModel.findById(req.params.id)
@@ -50,7 +81,6 @@ async function getBugById(req, res) {
   }
 }
 
-/** Update bug details except status */
 async function updateBug(req, res) {
   try {
     const updates = { ...req.body };
@@ -67,7 +97,6 @@ async function updateBug(req, res) {
   }
 }
 
-/** Change the status of a bug and record who changed it */
 async function changeBugStatus(req, res) {
   try {
     const { status, comment } = req.body;
@@ -75,14 +104,11 @@ async function changeBugStatus(req, res) {
 
     if (!bug) return res.status(404).json({ error: 'Bug not found' });
 
-    // Attach metadata for middleware
     bug._updatingUserId = req.user._id;
     bug._statusComment = comment;
     bug.currentStatus = status;
 
     await bug.save();
-
-    // ✅ populate before returning
     await bug.populate('reporter team statusHistory.changedBy');
 
     res.json(bug);
@@ -91,7 +117,6 @@ async function changeBugStatus(req, res) {
   }
 }
 
-/** Delete a bug report */
 async function deleteBug(req, res) {
   try {
     const result = await BugModel.findByIdAndDelete(req.params.id).exec();

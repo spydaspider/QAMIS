@@ -1,4 +1,3 @@
-// src/components/LogBug.js
 import { useState, useEffect } from 'react';
 import { useLogBugContext } from '../hooks/useLogBugContext';
 import { useAuthContext } from '../hooks/useAuthContext';
@@ -15,6 +14,10 @@ const LogBug = () => {
     severity: 'medium',
     reproductionSteps: []
   });
+
+  const [screenshots, setScreenshots] = useState([]);
+  const [previews, setPreviews] = useState([]);
+
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState(null);
   const [teamId, setTeamId] = useState('');
@@ -23,19 +26,21 @@ const LogBug = () => {
   const [studentNoTeam, setStudentNoTeam] = useState(false);
   const [reporterName, setReporterName] = useState(null);
 
-  // Fetch teams and bugs on mount
+ 
   useEffect(() => {
     if (!user) return;
-    const userId = JSON.parse(localStorage.getItem('user')).userId;
+
+    const userId = user.userId;
     let studentHasTeamCounter = 0;
 
-    // fetch all teams and find the one containing this student
-    fetch('/api/teams', { headers: { Authorization: `Bearer ${user.token}` } })
+    fetch('/api/teams', {
+      headers: { Authorization: `Bearer ${user.token}` }
+    })
       .then(res => res.json())
       .then(data => {
         const teams = data.data || [];
         const team = teams.find(
-          t => Array.isArray(t.students) && t.students.some(s => s._id === userId)
+          t => t.students?.some(s => s._id === userId)
         );
 
         if (team) {
@@ -43,33 +48,29 @@ const LogBug = () => {
           setTeamName(team.name);
         }
 
-        for (let i = 0; i < teams.length; i++) {
-          for (let j = 0; j < teams[i].students.length; j++) {
-            if (teams[i].students[j]._id === userId) {
-              studentHasTeamCounter = 1;
-            }
-          }
-        }
+        teams.forEach(t =>
+          t.students?.forEach(s => {
+            if (s._id === userId) studentHasTeamCounter = 1;
+          })
+        );
 
-        if (studentHasTeamCounter === 0) {
-          setLoading(false);
-          setStudentNoTeam(true);
-        }
+        if (!studentHasTeamCounter) setStudentNoTeam(true);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoading(false));
 
-    // fetch bugs for this user
-    fetch('/api/logBug', { headers: { Authorization: `Bearer ${user.token}` } })
+    fetch('/api/logBug', {
+      headers: { Authorization: `Bearer ${user.token}` }
+    })
       .then(res => res.json())
       .then(data => {
         const allBugs = Array.isArray(data) ? data : data.data;
-        const bugsList = allBugs.filter(b => b.reporter._id === userId);
-        dispatch({ type: 'SET_BUGS', payload: bugsList });
+        dispatch({
+          type: 'SET_BUGS',
+          payload: allBugs.filter(b => b.reporter._id === userId)
+        });
       })
-      .catch(() => dispatch({ type: 'SET_BUGS', payload: [] }))
-      .finally(() => {
-        setLoading(false);
-      });
+      .catch(() => dispatch({ type: 'SET_BUGS', payload: [] }));
   }, [user, dispatch]);
 
   const handleChange = e => {
@@ -105,105 +106,84 @@ const LogBug = () => {
     }));
   };
 
+  /* --------------------------------------------------- */
+  /* SCREENSHOTS                                        */
+  /* --------------------------------------------------- */
+
+  const handleFileChange = e => {
+    const files = Array.from(e.target.files);
+    setScreenshots(files);
+    setPreviews(files.map(file => URL.createObjectURL(file)));
+  };
+
+  useEffect(() => {
+    return () => previews.forEach(URL.revokeObjectURL);
+  }, [previews]);
+
+  /* --------------------------------------------------- */
+  /* SUBMIT                                             */
+  /* --------------------------------------------------- */
+
   const handleSubmit = async e => {
     e.preventDefault();
     setError(null);
 
-    if (!teamId) {
-      setError('Cannot determine your team. Please contact your instructor.');
-      return;
-    }
-    if (form.reproductionSteps.length === 0) {
-      setError('Please add at least one reproduction step.');
-      return;
-    }
-    for (const step of form.reproductionSteps) {
-      if (!step.action.trim()) {
-        setError('All reproduction steps must have an action description.');
-        return;
-      }
-    }
+    if (!teamId) return setError('Team not found.');
+    if (!form.reproductionSteps.length) return setError('Add reproduction steps.');
 
-    const payload = {
-      title: form.title,
-      description: form.description,
-      severity: form.severity,
-      team: teamId,
-      reproductionSteps: form.reproductionSteps
-    };
+    const formData = new FormData();
+    formData.append('title', form.title);
+    formData.append('description', form.description);
+    formData.append('severity', form.severity);
+    formData.append('team', teamId);
+    formData.append(
+      'reproductionSteps',
+      JSON.stringify(form.reproductionSteps)
+    );
+
+    screenshots.forEach(file =>
+      formData.append('screenshots', file)
+    );
 
     try {
       const url = editingId ? `/api/logBug/${editingId}` : '/api/logBug';
       const method = editingId ? 'PUT' : 'POST';
+
       const res = await fetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}`
-        },
-        body: JSON.stringify(payload)
+        headers: { Authorization: `Bearer ${user.token}` },
+        body: formData
       });
-      const json = await res.json();
-      setReporterName(json.reporter.username);
-      if (!res.ok) throw new Error(json.error || 'Failed to save bug');
 
-      //  Patch reporter so UI shows immediately
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error);
+
+      setReporterName(json.reporter.username);
+
       dispatch({
         type: editingId ? 'UPDATE_BUG' : 'CREATE_BUG',
         payload: {
           ...json,
           reporter: {
-            ...(json.reporter || {}),
+            ...json.reporter,
             _id: user.userId,
-            username: user.username,
-            email: user.email
+            username: user.username
           }
         }
       });
 
       setForm({ title: '', description: '', severity: 'medium', reproductionSteps: [] });
+      setScreenshots([]);
+      setPreviews([]);
       setEditingId(null);
     } catch (err) {
       setError(err.message);
     }
   };
 
-  const handleStatusChange = async (bugId, newStatus) => {
-    setError(null);
-    try {
-      const res = await fetch(`/api/logBug/${bugId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}`
-        },
-        body: JSON.stringify({ status: newStatus, comment: '' })
-      });
-      const updated = await res.json();
-      if (!res.ok) throw new Error(updated.error || 'Status update failed');
-      dispatch({ type: 'UPDATE_BUG', payload: updated });
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  const handleDelete = async id => {
-    setError(null);
-    try {
-      const res = await fetch(`/api/logBug/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${user.token}` }
-      });
-      if (res.status !== 204) {
-        const json = await res.json();
-        throw new Error(json.error || 'Delete failed');
-      }
-      dispatch({ type: 'DELETE_BUG', payload: id });
-      if (editingId === id) setEditingId(null);
-    } catch (err) {
-      setError(err.message);
-    }
-  };
+  /* --------------------------------------------------- */
+  /* ACTIONS                                            */
+  /* --------------------------------------------------- */
 
   const handleEdit = bug => {
     setEditingId(bug._id);
@@ -213,137 +193,104 @@ const LogBug = () => {
       severity: bug.severity,
       reproductionSteps: bug.reproductionSteps
     });
-    setError(null);
+    setPreviews(bug.screenshots?.map(s => s.imageUrl) || []);
   };
 
+  const handleDelete = async id => {
+    try {
+      await fetch(`/api/logBug/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+      dispatch({ type: 'DELETE_BUG', payload: id });
+      if (editingId === id) setEditingId(null);
+    } catch {}
+  };
+
+  const handleStatusChange = async (id, status) => {
+    const res = await fetch(`/api/logBug/${id}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${user.token}`
+      },
+      body: JSON.stringify({ status })
+    });
+    dispatch({ type: 'UPDATE_BUG', payload: await res.json() });
+  };
+
+  /* --------------------------------------------------- */
+  /* RENDER                                             */
+  /* --------------------------------------------------- */
+
   if (studentNoTeam)
-    return <h1 className={styles.gridText}>You are not assigned to a team yet. Speak to instructor</h1>;
+    return <h1>You are not assigned to a team yet.</h1>;
   if (loading) return <Loader />;
 
   return (
     <div className={styles.container}>
       {error && <div className={styles.error}>{error}</div>}
-      <h2 className={styles.title}>{editingId ? 'Update Bug' : 'Log Bug'}</h2>
-      {teamId ? (
-        <div className={styles.teamInfo}>
-          <strong>Team:</strong> {teamName}
-        </div>
-      ) : (
-        <div className={styles.teamMissing}>Team not yet determined</div>
-      )}
 
-      <div className={styles.listArea}>
-        {bugs.length === 0 ? (
-          <div className={styles.message}>No bugs found.</div>
-        ) : (
-          bugs.map(bug => (
-            <div key={bug._id} className={styles.groupCard}>
-              <div className={styles.header}>
-                <h3 className={styles.groupName}>{bug.title}</h3>
-                <select
-                  className={styles.statusSelect}
-                  value={bug.currentStatus}
-                  onChange={e => handleStatusChange(bug._id, e.target.value)}
-                >
-                  <option value="open">Open</option>
-                  <option value="in review">In Review</option>
-                  <option value="resolved">Resolved</option>
-                  <option value="closed">Closed</option>
-                </select>
-                <button
-                  className={styles.removeBtn}
-                  onClick={() => handleDelete(bug._id)}
-                >
-                  ×
-                </button>
-                <button
-                  className={styles.addStepBtn}
-                  onClick={() => handleEdit(bug)}
-                >
-                  Edit
-                </button>
-              </div>
+      <form onSubmit={handleSubmit} className={styles.controls}>
+        <input name="title" value={form.title} onChange={handleChange} placeholder="Title" required />
+        <input name="description" value={form.description} onChange={handleChange} placeholder="Description" required />
+        <select name="severity" value={form.severity} onChange={handleChange}>
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+          <option value="critical">Critical</option>
+        </select>
 
-              {/*  Reporter info */}
-              <p>
-                <strong>Reported by:</strong> {bug.reporter?.username || reporterName || 'Unknown'}
-              </p>
+        <input type="file" multiple accept="image/*" onChange={handleFileChange} />
 
-              <p>{bug.description}</p>
-              <small>Severity: {bug.severity}</small>
-              {bug.reproductionSteps.length > 0 && (
-                <ul>
-                  {bug.reproductionSteps.map(s => (
-                    <li key={s.stepNumber}>{`${s.stepNumber}. ${s.action}`}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ))
-        )}
-      </div>
-
-      <div className={styles.formArea}>
-        <form className={styles.controls} onSubmit={handleSubmit}>
-          <input
-            className={styles.input}
-            name="title"
-            placeholder="Title"
-            value={form.title}
-            onChange={handleChange}
-            required
-          />
-          <input
-            className={styles.input}
-            name="description"
-            placeholder="Description"
-            value={form.description}
-            onChange={handleChange}
-            required
-          />
-          <select
-            className={styles.input}
-            name="severity"
-            value={form.severity}
-            onChange={handleChange}
-          >
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-            <option value="critical">Critical</option>
-          </select>
-          <div className={styles.stepList}>
-            {form.reproductionSteps.map((step, idx) => (
-              <div key={idx} className={styles.stepItem}>
-                <input
-                  className={styles.stepInput}
-                  placeholder="Action"
-                  value={step.action}
-                  onChange={e => handleStepChange(idx, e.target.value)}
-                  required
-                />
-                <button
-                  type="button"
-                  className={styles.removeBtn}
-                  onClick={() => handleRemoveStep(idx)}
-                >
-                  −
-                </button>
-              </div>
+        {previews.length > 0 && (
+          <div className={styles.screenshotGrid}>
+            {previews.map((src, i) => (
+              <img key={i} src={src} className={styles.screenshot} />
             ))}
-            <button
-              type="button"
-              className={styles.addStepBtn}
-              onClick={handleAddStep}
-            >
-              Add Step
-            </button>
           </div>
-          <button className={styles.submitBtn} type="submit">
-            {editingId ? 'Update Bug' : 'Log Bug'}
-          </button>
-        </form>
-      </div>
+        )}
+
+        {form.reproductionSteps.map((step, i) => (
+          <input
+            key={i}
+            value={step.action}
+            onChange={e => handleStepChange(i, e.target.value)}
+            placeholder={`Step ${i + 1}`}
+          />
+        ))}
+
+        <button type="button" onClick={handleAddStep}>Add Step</button>
+        <button type="submit">{editingId ? 'Update Bug' : 'Log Bug'}</button>
+      </form>
+
+      {bugs.map(bug => (
+        <div key={bug._id} className={styles.groupCard}>
+          <h3>{bug.title}</h3>
+          <p>{bug.description}</p>
+
+          {bug.screenshots?.length > 0 && (
+            <div className={styles.screenshotGrid}>
+              {bug.screenshots.map((s, i) => (
+                <img key={i} src={s.imageUrl} className={styles.screenshot} />
+              ))}
+            </div>
+          )}
+
+          <select
+            value={bug.currentStatus}
+            onChange={e => handleStatusChange(bug._id, e.target.value)}
+          >
+            <option value="open">Open</option>
+            <option value="in review">In Review</option>
+            <option value="resolved">Resolved</option>
+            <option value="closed">Closed</option>
+          </select>
+
+          <button onClick={() => handleEdit(bug)}>Edit</button>
+          <button onClick={() => handleDelete(bug._id)}>Delete</button>
+        </div>
+      ))}
     </div>
   );
 };

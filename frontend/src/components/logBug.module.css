@@ -1,4 +1,4 @@
-
+/* ===== Layout ===== */
 .container {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -6,20 +6,20 @@
   padding: 20px;
   background-color: #f9f9f9;
   overflow-y: auto;
-  grid-column: 3/-1;
+  grid-column: 3 / -1;
 }
 
 .title {
   grid-column: 1 / -1;
   font-size: 24px;
-  font-weight: bold;
+  font-weight: 700;
   color: #333;
   margin-bottom: 16px;
 }
 
+/* ===== Messages ===== */
 .error {
   grid-column: 1 / -1;
-  margin-bottom: 16px;
   padding: 10px;
   background-color: #ffe6e6;
   color: #cc0000;
@@ -27,17 +27,17 @@
   border-radius: 4px;
 }
 
-.listArea {
-  grid-column: 1;
-  grid-row: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
 .message {
   font-style: italic;
   color: #666;
+}
+
+/* ===== List Area ===== */
+.listArea {
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .groupCard {
@@ -74,9 +74,9 @@
   color: #b30000;
 }
 
+/* ===== Form Area ===== */
 .formArea {
   grid-column: 2;
-  grid-row: 2;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -88,21 +88,31 @@
   gap: 12px;
 }
 
-.input, .fileInput, select {
-  flex: 1;
-  min-width: 180px;
+/* ===== Inputs ===== */
+.input,
+.fileInput,
+select,
+.stepInput {
+  width: 100%;
   padding: 8px;
   font-size: 14px;
   border: 1px solid #ccc;
   border-radius: 4px;
   transition: border-color 0.2s ease;
 }
+.screenshot{
+  width: 300px;
+}
 
-.input:focus, .fileInput:focus {
+.input:focus,
+.fileInput:focus,
+select:focus,
+.stepInput:focus {
   outline: none;
   border-color: #0066cc;
 }
 
+/* ===== Reproduction Steps ===== */
 .stepList {
   list-style: none;
   padding: 0;
@@ -112,22 +122,28 @@
 .stepItem {
   display: flex;
   align-items: center;
-  margin-bottom: 4px;
-}
-.gridText{
-  grid-column: 3/-1;
-  
+  gap: 8px;
 }
 
-.stepInput {
-  flex: 1;
-  padding: 6px;
-  font-size: 14px;
-  border: 1px solid #ccc;
+/* ===== Screenshot Preview ===== */
+.screenshotGrid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.screenshotPreview {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
   border-radius: 4px;
+  border: 1px solid #ddd;
 }
 
-.addStepBtn, .submitBtn, .cancelBtn {
+/* ===== Buttons ===== */
+.addStepBtn,
+.submitBtn,
+.cancelBtn {
   padding: 8px 16px;
   font-size: 14px;
   background-color: #0066cc;
@@ -138,6 +154,13 @@
   transition: background-color 0.2s ease;
 }
 
-.addStepBtn:hover, .submitBtn:hover, .cancelBtn:hover {
+.addStepBtn:hover,
+.submitBtn:hover,
+.cancelBtn:hover {
   background-color: #005bb5;
+}
+
+/* ===== Utility ===== */
+.gridText {
+  grid-column: 3 / -1;
 }
