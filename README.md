@@ -1,6 +1,5 @@
 # Quality Assurance Experiment Management Information System
 
-# QA-EMS (Quality Assurance Experiment Management System)
 
 A web-based platform designed to support evidence-based teaching in Software Engineering classrooms. QA-EMS enables instructors and students to collect, manage, track, and analyse Software Quality Assurance (SQA) metrics from student software projects, including defect density, Mean Time to Repair (MTTR), test pass rates, and test coverage. The system provides a structured environment for evaluating software quality and supporting future evidence-based comparisons of Agile and Waterfall development methodologies. Developed as part of an MSc Software Engineering dissertation at Staffordshire University.
 
